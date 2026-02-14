@@ -56,6 +56,41 @@ Identify:
 - Entry points (main, routes, controllers)
 - High-risk areas (auth, payments, data processing)
 
+### Phase 1b: Trivial Scope Check
+
+Before proceeding, analyze the diff to determine if the changes warrant an audit.
+
+**Get the diff**:
+- For uncommitted changes: `git diff HEAD`
+- For commit ranges: `git diff HEAD~N`
+- For specific paths: read the files directly
+
+**Classify as trivial if ALL of the following are true**:
+- Total code changes ≤ 5 lines (excluding blank lines and comments)
+- Changes are purely mechanical: typo fixes, formatting, whitespace, import reordering, comment edits, version bumps in config files
+- No logic, control flow, or data handling changes whatsoever
+
+**NEVER classify as trivial if ANY of these apply**:
+- Any change to logic, conditionals, loops, or data flow — even a single character (`>` vs `>=`)
+- Files in security-sensitive paths (auth, crypto, permissions, payments, sessions)
+- New dependencies added or removed
+- Config changes that affect runtime behavior (env vars, feature flags, API endpoints)
+- Changes to error handling or validation
+
+**If trivial**:
+```
+AskUserQuestion:
+  question: "This looks like a trivial change ({N} lines — {description, e.g. 'typo fix in comment'}). An audit is unlikely to find anything. Proceed anyway?"
+  header: "Scope"
+  options:
+    - label: "Skip audit (Recommended)"
+      description: "Change is too minor to warrant an audit"
+    - label: "Audit anyway"
+      description: "Run the full audit regardless"
+```
+
+If "Skip audit" → respond with "Scope too trivial for audit — no issues expected." and STOP.
+
 ### Phase 2: Audit All 9 Dimensions
 
 **Availability test** — before the real audit, send a short ping to Codex:
