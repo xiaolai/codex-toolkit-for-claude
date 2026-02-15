@@ -14,7 +14,7 @@ $ARGUMENTS
 Runs a complete audit→fix→verify cycle:
 
 1. **Audit** — find issues (full 9-dimension or mini 5-dimension)
-2. **Fix** — send findings to Codex to fix them autonomously
+2. **Fix** — Claude or Codex fixes the issues (your choice)
 3. **Verify** — check that each fix actually resolved the issue
 4. **Repeat** — if issues remain, loop back to fix
 
@@ -134,16 +134,18 @@ Set `iteration = 1`.
 
 #### 3a: Ask before fixing
 
-Show the findings summary and ask:
+Show the findings summary and ask two questions:
+
+**Question 1 — Scope** (severity filter):
 
 For a **full audit** (has Critical severity):
 ```
 AskUserQuestion:
   question: "Found {N} issues ({critical} Critical, {high} High, {medium} Medium, {low} Low). Fix them?"
-  header: "Fix"
+  header: "Fix scope"
   options:
     - label: "Fix all (Recommended)"
-      description: "Send all findings to Codex for autonomous fixing"
+      description: "Fix all findings"
     - label: "Fix Critical + High only"
       description: "Only fix Critical and High severity issues"
     - label: "Stop here"
@@ -154,10 +156,10 @@ For a **mini audit** (no Critical severity — uses High/Medium/Low only):
 ```
 AskUserQuestion:
   question: "Found {N} issues ({high} High, {medium} Medium, {low} Low). Fix them?"
-  header: "Fix"
+  header: "Fix scope"
   options:
     - label: "Fix all (Recommended)"
-      description: "Send all findings to Codex for autonomous fixing"
+      description: "Fix all findings"
     - label: "Fix High only"
       description: "Only fix High severity issues"
     - label: "Stop here"
@@ -166,7 +168,42 @@ AskUserQuestion:
 
 If "Stop here" → display final report and STOP.
 
-#### 3b: Send fixes to Codex
+**Question 2 — Who fixes**:
+
+```
+AskUserQuestion:
+  question: "Who should fix these issues?"
+  header: "Fixer"
+  options:
+    - label: "Claude (Recommended)"
+      description: "Fix directly using Read/Edit — has full project context, precise edits"
+    - label: "Codex"
+      description: "Send to Codex for autonomous fixing — sandboxed, isolated"
+```
+
+Store the choice as `{chosen_fixer}` for use in 3b.
+
+#### 3b: Fix issues
+
+##### If `{chosen_fixer}` is **Claude**:
+
+Fix each issue directly using Claude's tools:
+
+1. For each issue in the filtered findings list:
+   - Read the file at the reported location
+   - Understand the surrounding context
+   - Apply the minimal correct fix using the Edit tool
+   - If a fix requires changing multiple related locations, fix all of them
+2. Do NOT refactor surrounding code — only fix what was reported
+3. Do NOT delete code unless the issue specifically calls for removal (dead code, unused imports)
+4. After fixing all issues, run available tests if the project has them
+5. Show a summary of what was fixed
+
+Display a summary of changes:
+- Run `git diff --stat` to show modified files
+- List each fix applied: file:line, what was changed
+
+##### If `{chosen_fixer}` is **Codex**:
 
 ```
 mcp__codex__codex with:
@@ -235,11 +272,14 @@ Parse verification results:
       header: "Continue"
       options:
         - label: "Fix remaining issues (Recommended)"
-          description: "Send unfixed issues to Codex for another attempt"
+          description: "Send unfixed issues to {chosen_fixer} for another attempt"
+        - label: "Switch fixer"
+          description: "Try the other fixer (Claude↔Codex) on remaining issues"
         - label: "Stop here"
           description: "Accept current state, fix remaining issues manually"
     ```
-  - If "Fix remaining" → go back to **3b** with only the remaining issues
+  - If "Fix remaining" → go back to **3b** with only the remaining issues (same fixer)
+  - If "Switch fixer" → flip `{chosen_fixer}` (Claude→Codex or Codex→Claude), go back to **3b**
   - If "Stop here" → proceed to Step 4
 
 - **iteration = 3** → proceed to Step 4 with whatever remains
@@ -252,8 +292,9 @@ Parse verification results:
 **Date**: {today}
 **Scope**: {what was audited}
 **Audit type**: Full (9-dim) / Mini (5-dim)
+**Fixer**: {Claude / Codex}
 **Model**: {chosen_model} | **Effort**: {chosen_effort} | **Sandbox**: {chosen_sandbox}
-**Thread ID**: `{threadId}` _(use `/codex-continue {threadId}` to iterate further)_
+**Thread ID**: `{threadId}` _(use `/codex-continue {threadId}` to iterate further — Codex only)_
 **Rounds**: {iteration count}
 
 ## Result: {ACCEPTED / PARTIAL / UNCHANGED}
