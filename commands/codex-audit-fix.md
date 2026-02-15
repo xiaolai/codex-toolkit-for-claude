@@ -22,7 +22,7 @@ Continues until all issues are resolved or the user decides to stop.
 
 ## Model & Settings Selection
 
-Follow the instructions in `commands/_model-selection.md` to discover available models and present choices.
+Follow the instructions in `commands/shared/model-selection.md` to discover available models and present choices.
 
 - **Recommended model**: `gpt-5.3-codex`
 - **Recommended reasoning effort**: `high`

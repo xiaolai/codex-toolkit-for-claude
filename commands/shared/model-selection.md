@@ -1,3 +1,6 @@
+---
+user-invocable: false
+---
 <!-- Shared partial: dynamic model selection via codex-preflight -->
 <!-- Referenced by all codex-* commands. Do not use as a standalone command. -->
 

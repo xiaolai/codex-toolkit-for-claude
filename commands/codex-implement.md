@@ -29,7 +29,7 @@ Read the plan content and display a brief summary to the user.
 
 ### Step 2: Let user choose model and settings
 
-Follow the instructions in `commands/_model-selection.md` to discover available models and present choices.
+Follow the instructions in `commands/shared/model-selection.md` to discover available models and present choices.
 
 - **Recommended model**: `gpt-5.3-codex`
 - **Recommended reasoning effort**: `medium`

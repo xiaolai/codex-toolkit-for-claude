@@ -6,7 +6,8 @@ OpenAI Codex MCP integration for Claude Code. Slash commands that delegate work 
 
 ```
 commands/           Slash command definitions (*.md with YAML frontmatter)
-  _model-selection.md   Shared partial — dynamic model discovery (not a standalone command)
+  shared/
+    model-selection.md  Shared partial — dynamic model discovery (user-invocable: false)
   codex-preflight.md    /codex-preflight — connectivity + model check
   codex-implement.md    /codex-implement — autonomous plan execution
   codex-audit.md        /codex-audit — full 9-dimension code audit
@@ -39,7 +40,7 @@ scripts/
 
 Users can run `/codex-init` to generate a `.codex-toolkit-for-claude.md` in their project root. This file is optional — all commands work without it.
 
-When present, `_model-selection.md` reads it at Step 0 and uses its values as defaults. Priority: user choice > project config > command defaults.
+When present, `commands/shared/model-selection.md` reads it at Step 0 and uses its values as defaults. Priority: user choice > project config > command defaults.
 
 Config fields:
 - **Default model/effort/sandbox** — override recommended values
@@ -52,7 +53,7 @@ Config fields:
 
 All commands follow this pattern:
 1. Load `.codex-toolkit-for-claude.md` project config if it exists (Step 0)
-2. Run `scripts/codex-preflight.sh` via `commands/_model-selection.md` to discover models
+2. Run `scripts/codex-preflight.sh` via `commands/shared/model-selection.md` to discover models
 3. Present choices via `AskUserQuestion` (model, effort, optionally sandbox)
 4. Ping Codex with a short availability test
 5. Send the real task to Codex via `mcp__codex__codex`
@@ -62,13 +63,13 @@ All commands follow this pattern:
 ### Model selection
 
 - Models are discovered dynamically — never hardcode model availability
-- The `_model-selection.md` partial handles all model/effort/sandbox selection
+- The `commands/shared/model-selection.md` partial handles all model/effort/sandbox selection
 - Each command specifies its recommended model, effort, and whether sandbox is relevant
 
 ### Adding new commands
 
 1. Create `commands/codex-<name>.md` with YAML frontmatter (`description`, optional `argument-hint`)
-2. Reference `commands/_model-selection.md` for model selection
+2. Reference `commands/shared/model-selection.md` for model selection
 3. Use `config: {"model_reasoning_effort": "..."}` (not top-level)
 4. Add `developer-instructions` with a role persona
 5. Include `threadId` in the report output
