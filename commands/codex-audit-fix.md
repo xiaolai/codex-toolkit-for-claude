@@ -122,6 +122,8 @@ mcp__codex__codex with:
 
 Collect all findings into a structured audit report (same format as codex-audit or codex-audit-mini).
 
+**Save the `threadId`** from the audit Codex call as `{audit_threadId}`. This will be reused for fix and verify steps when Codex is the fixer, giving it cumulative context about what it found.
+
 Display the report to the user.
 
 If **no issues found** → report CLEAN and STOP.
@@ -205,14 +207,12 @@ Display a summary of changes:
 
 ##### If `{chosen_fixer}` is **Codex**:
 
+**Reuse the audit thread** via `codex-reply` so Codex has full context of what it found:
+
 ```
-mcp__codex__codex with:
-  model: {chosen_model}
-  config: {"model_reasoning_effort": "{chosen_effort}"}
-  sandbox: {chosen_sandbox}
-  approval-policy: never
-  developer-instructions: "You are an autonomous code fixer. Fix every issue precisely at the reported location. Do not introduce new issues."
-  prompt: "Fix the following issues found during code audit. For each issue, make the minimal correct fix at the exact file:line location.
+mcp__codex__codex-reply with:
+  threadId: {audit_threadId}
+  prompt: "Fix the following issues from your audit. For each issue, make the minimal correct fix at the exact file:line location.
 
 ISSUES TO FIX:
 {filtered findings in file:line | severity | issue | fix format}
@@ -226,6 +226,20 @@ RULES:
 - Report: what you fixed, what you couldn't fix, and any test results"
 ```
 
+**Fallback**: If `codex-reply` fails (e.g. thread expired or MCP server restarted), fall back to a fresh `codex` call:
+
+```
+mcp__codex__codex with:
+  model: {chosen_model}
+  config: {"model_reasoning_effort": "{chosen_effort}"}
+  sandbox: {chosen_sandbox}
+  approval-policy: never
+  developer-instructions: "You are an autonomous code fixer. Fix every issue precisely at the reported location. Do not introduce new issues."
+  prompt: "{same prompt as above}"
+```
+
+Update `{audit_threadId}` to the new threadId from whichever call succeeded.
+
 **Wait for Codex to complete.**
 
 Display a summary of what Codex changed:
@@ -234,15 +248,11 @@ Display a summary of what Codex changed:
 
 #### 3c: Verify fixes
 
-Run verification using the same approach as `codex-verify.md`:
+**If `{chosen_fixer}` was Codex** — continue the same thread so Codex can verify its own fixes with full context:
 
 ```
-mcp__codex__codex with:
-  model: {chosen_model}
-  config: {"model_reasoning_effort": "{chosen_effort}"}
-  sandbox: read-only
-  approval-policy: never
-  developer-instructions: "You are a verification auditor. Only check issues from the provided audit report."
+mcp__codex__codex-reply with:
+  threadId: {audit_threadId}
   prompt: "Verify whether the following issues have been fixed. Check each file at the exact location.
 
 ORIGINAL ISSUES:
@@ -254,6 +264,22 @@ For each issue report:
 - PARTIAL — partially addressed (explain what remains)
 - REGRESSED — fix introduced a new problem (describe it)"
 ```
+
+**If `{chosen_fixer}` was Claude** — use a fresh Codex call for independent verification (Claude already applied fixes, Codex verifies with fresh eyes):
+
+```
+mcp__codex__codex with:
+  model: {chosen_model}
+  config: {"model_reasoning_effort": "{chosen_effort}"}
+  sandbox: read-only
+  approval-policy: never
+  developer-instructions: "You are a verification auditor. Only check issues from the provided audit report."
+  prompt: "{same verification prompt as above}"
+```
+
+Update `{audit_threadId}` if a new thread was created.
+
+**Fallback**: If `codex-reply` fails, fall back to a fresh `codex` call (same as the Claude-fixer path).
 
 **Wait for Codex to complete.**
 
@@ -294,7 +320,7 @@ Parse verification results:
 **Audit type**: Full (9-dim) / Mini (5-dim)
 **Fixer**: {Claude / Codex}
 **Model**: {chosen_model} | **Effort**: {chosen_effort} | **Sandbox**: {chosen_sandbox}
-**Thread ID**: `{threadId}` _(use `/codex-continue {threadId}` to iterate further — Codex only)_
+**Thread ID**: `{audit_threadId}` _(use `/codex-continue {audit_threadId}` to iterate further — Codex only)_
 **Rounds**: {iteration count}
 
 ## Result: {ACCEPTED / PARTIAL / UNCHANGED}
@@ -331,7 +357,7 @@ Parse verification results:
 - Run tests: {project-appropriate test command}
 - Commit: if satisfied with the fixes
 - Revert: `git checkout .` to undo all changes
-- Continue: `/codex-continue {threadId}` to address remaining issues
+- Continue: `/codex-continue {audit_threadId}` to address remaining issues
 ```
 
 ### Verdicts

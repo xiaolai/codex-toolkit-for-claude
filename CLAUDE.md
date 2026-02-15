@@ -35,6 +35,8 @@ scripts/
   ```
 - Every command that calls `mcp__codex__codex` MUST include `developer-instructions` with a role-specific persona.
 - Every command report MUST include the `threadId` from the Codex response so users can follow up with `/codex-continue`.
+- Multi-step workflows (like audit→fix→verify) should **reuse the same thread** via `mcp__codex__codex-reply` when Codex is the actor, giving it cumulative context. Fall back to a fresh `mcp__codex__codex` call if the thread expires.
+- Codex threads are **in-memory only** — lost on MCP server restart. Always include a fallback path.
 
 ### Project config (`.codex-toolkit-for-claude.md`)
 
