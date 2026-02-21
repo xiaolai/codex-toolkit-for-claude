@@ -52,6 +52,8 @@ Commands reference shared partials to eliminate boilerplate:
 
 Config enforcement chain: `model-selection.md` (extracts config variables) → `codex-call.md` (applies them to calls) → `scope-parse.md` (applies skip patterns to files).
 
+Commands that share logic with another command should reference it rather than duplicate. For example, `audit-fix.md` references `audit.md` Step 1 for audit-type selection instead of inlining the same block.
+
 ### Project config (`.codex-toolkit.md`)
 
 Users can run `/init` to generate a `.codex-toolkit.md` in their project root. This file is optional — all commands work without it.
