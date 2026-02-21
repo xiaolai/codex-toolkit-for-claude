@@ -1,4 +1,4 @@
-# codex-toolkit-for-claude
+# codex-toolkit
 
 OpenAI Codex MCP integration for Claude Code. Slash commands that delegate work to Codex running as an MCP server.
 
@@ -8,21 +8,22 @@ OpenAI Codex MCP integration for Claude Code. Slash commands that delegate work 
 commands/           Slash command definitions (*.md with YAML frontmatter)
   shared/
     model-selection.md  Shared partial — dynamic model discovery (user-invocable: false)
-  codex-preflight.md    /codex-preflight — connectivity + model check
-  codex-implement.md    /codex-implement — autonomous plan execution
-  codex-audit.md        /codex-audit — full 9-dimension code audit
-  codex-audit-mini.md   /codex-audit-mini — fast 5-dimension audit
-  codex-verify.md       /codex-verify — verify fixes from previous audit
-  codex-bug-analyze.md  /codex-bug-analyze — root cause analysis
-  codex-review-plan.md  /codex-review-plan — architectural plan review
-  codex-audit-fix.md    /codex-audit-fix — audit→fix→verify loop
-  codex-continue.md     /codex-continue — multi-turn follow-up via codex-reply
-  codex-init.md         /codex-init — generate .codex-toolkit-for-claude.md project config
+  preflight.md        /preflight — connectivity + model check
+  implement.md        /implement — autonomous plan execution
+  audit.md            /audit — full 9-dimension code audit
+  audit-mini.md       /audit-mini — fast 5-dimension audit
+  verify.md           /verify — verify fixes from previous audit
+  bug-analyze.md      /bug-analyze — root cause analysis
+  review-plan.md      /review-plan — architectural plan review
+  audit-fix.md        /audit-fix — audit→fix→verify loop
+  continue.md         /continue — multi-turn follow-up via codex-reply
+  init.md             /init — generate .codex-toolkit.md project config
 scripts/
   codex-preflight.sh    Model discovery script (probes candidates in parallel)
 .mcp.json               Registers Codex MCP server
 .claude-plugin/
   plugin.json           Plugin metadata
+  marketplace.json      Marketplace manifest for /plugin marketplace add
 ```
 
 ## Conventions
@@ -34,13 +35,13 @@ scripts/
   config: {"model_reasoning_effort": "{chosen_effort}"}
   ```
 - Every command that calls `mcp__codex__codex` MUST include `developer-instructions` with a role-specific persona.
-- Every command report MUST include the `threadId` from the Codex response so users can follow up with `/codex-continue`.
+- Every command report MUST include the `threadId` from the Codex response so users can follow up with `/continue`.
 - Multi-step workflows (like audit→fix→verify) should **reuse the same thread** via `mcp__codex__codex-reply` when Codex is the actor, giving it cumulative context. Fall back to a fresh `mcp__codex__codex` call if the thread expires.
 - Codex threads are **in-memory only** — lost on MCP server restart. Always include a fallback path.
 
-### Project config (`.codex-toolkit-for-claude.md`)
+### Project config (`.codex-toolkit.md`)
 
-Users can run `/codex-init` to generate a `.codex-toolkit-for-claude.md` in their project root. This file is optional — all commands work without it.
+Users can run `/init` to generate a `.codex-toolkit.md` in their project root. This file is optional — all commands work without it.
 
 When present, `commands/shared/model-selection.md` reads it at Step 0 and uses its values as defaults. Priority: user choice > project config > command defaults.
 
@@ -54,7 +55,7 @@ Config fields:
 ### Command structure
 
 All commands follow this pattern:
-1. Load `.codex-toolkit-for-claude.md` project config if it exists (Step 0)
+1. Load `.codex-toolkit.md` project config if it exists (Step 0)
 2. Run `scripts/codex-preflight.sh` via `commands/shared/model-selection.md` to discover models
 3. Present choices via `AskUserQuestion` (model, effort, optionally sandbox)
 4. Ping Codex with a short availability test
@@ -70,7 +71,7 @@ All commands follow this pattern:
 
 ### Adding new commands
 
-1. Create `commands/codex-<name>.md` with YAML frontmatter (`description`, optional `argument-hint`)
+1. Create `commands/<name>.md` with YAML frontmatter (`description`, optional `argument-hint`)
 2. Reference `commands/shared/model-selection.md` for model selection
 3. Use `config: {"model_reasoning_effort": "..."}` (not top-level)
 4. Add `developer-instructions` with a role persona

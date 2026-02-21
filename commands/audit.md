@@ -180,7 +180,7 @@ After all audits complete, compile findings into:
 **Scope**: {what was audited}
 **Files**: {count}
 **Model**: {chosen_model} | **Effort**: {chosen_effort}
-**Thread ID**: `{threadId}` _(use `/codex-continue {threadId}` to iterate on findings)_
+**Thread ID**: `{threadId}` _(use `/continue {threadId}` to iterate on findings)_
 
 ## Executive Summary
 

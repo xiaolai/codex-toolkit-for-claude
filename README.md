@@ -1,4 +1,4 @@
-# codex-toolkit-for-claude
+# codex-toolkit
 
 OpenAI Codex MCP integration for Claude Code.
 
@@ -37,20 +37,20 @@ First, add the marketplace (once):
 Then install:
 
 ```
-/plugin install codex-toolkit-for-claude@xiaolai
+/plugin install codex-toolkit@xiaolai
 ```
 
 Choose an install scope based on your needs:
 
 | Scope | Command | Effect |
 |-------|---------|--------|
-| **User** (default) | `/plugin install codex-toolkit-for-claude@xiaolai` | Available in all your projects |
-| **Project** | `/plugin install codex-toolkit-for-claude@xiaolai --scope project` | Shared with team via `.claude/settings.json` (committed to repo) |
-| **Local** | `/plugin install codex-toolkit-for-claude@xiaolai --scope local` | Only you, only this repo (gitignored) |
+| **User** (default) | `/plugin install codex-toolkit@xiaolai` | Available in all your projects |
+| **Project** | `/plugin install codex-toolkit@xiaolai --scope project` | Shared with team via `.claude/settings.json` (committed to repo) |
+| **Local** | `/plugin install codex-toolkit@xiaolai --scope local` | Only you, only this repo (gitignored) |
 
 ### Configure for your project (optional)
 
-Run `/codex-init` inside your project to generate a `.codex-toolkit-for-claude.md` config file. This lets you set project-specific defaults:
+Run `/init` inside your project to generate a `.codex-toolkit.md` config file. This lets you set project-specific defaults:
 
 - Default model and reasoning effort
 - Audit focus (balanced, security-first, performance-first, quality-first)
@@ -63,16 +63,18 @@ If no config file exists, commands use sensible built-in defaults.
 
 | Command | Description |
 |---------|-------------|
-| `/codex-init` | Initialize project config — set default model, audit focus, skip patterns |
-| `/codex-preflight` | Check Codex connectivity, auth status, and discover available models |
-| `/codex-implement` | Delegate an implementation plan to Codex for autonomous execution |
-| `/codex-audit` | Full 9-dimension code audit (security, correctness, performance, ...) |
-| `/codex-audit-mini` | Fast 5-dimension audit for small changes |
-| `/codex-verify` | Verify that issues from a previous audit have been fixed |
-| `/codex-bug-analyze` | Root cause analysis for user-described bugs |
-| `/codex-review-plan` | Architectural review of implementation plans |
-| `/codex-audit-fix` | Full audit→fix→verify loop — runs until all issues are resolved or you stop |
-| `/codex-continue` | Continue a previous Codex session — iterate on findings or request fixes |
+| `/init` | Initialize project config — set default model, audit focus, skip patterns |
+| `/preflight` | Check Codex connectivity, auth status, and discover available models |
+| `/implement` | Delegate an implementation plan to Codex for autonomous execution |
+| `/audit` | Full 9-dimension code audit (security, correctness, performance, ...) |
+| `/audit-mini` | Fast 5-dimension audit for small changes |
+| `/verify` | Verify that issues from a previous audit have been fixed |
+| `/bug-analyze` | Root cause analysis for user-described bugs |
+| `/review-plan` | Architectural review of implementation plans |
+| `/audit-fix` | Full audit→fix→verify loop — runs until all issues are resolved or you stop |
+| `/continue` | Continue a previous Codex session — iterate on findings or request fixes |
+
+> When installed as a plugin, commands appear as `/codex-toolkit:<command>` (e.g. `/codex-toolkit:audit`).
 
 ## How it works
 
@@ -83,11 +85,11 @@ Each command follows the same pattern:
 3. **Fallback** — if Codex is unavailable or returns empty, Claude performs the task manually
 4. **Report** — structured output with findings, verdicts, thread ID, and next steps
 
-Every command output includes a **thread ID** that you can pass to `/codex-continue` to iterate on findings, request fixes, or drill deeper — without re-sending the full context.
+Every command output includes a **thread ID** that you can pass to `/continue` to iterate on findings, request fixes, or drill deeper — without re-sending the full context.
 
 ## Audit→Fix→Verify workflow
 
-The `/codex-audit-fix` command runs the full cycle automatically:
+The `/audit-fix` command runs the full cycle automatically:
 
 ```
 audit → fix → verify → (issues remain?) → fix → verify → ... → ACCEPTED
@@ -102,9 +104,9 @@ audit → fix → verify → (issues remain?) → fix → verify → ... → ACC
 You can also run each step manually:
 
 ```
-/codex-audit-mini          # find issues
+/audit-mini          # find issues
 # fix them yourself
-/codex-verify report.md    # check your fixes
+/verify report.md    # check your fixes
 ```
 
 ## Available models
@@ -119,7 +121,7 @@ To check availability manually:
 bash scripts/codex-preflight.sh    # JSON to stdout
 ```
 
-Or run `/codex-preflight` inside Claude Code for a human-friendly report.
+Or run `/preflight` inside Claude Code for a human-friendly report.
 
 ## MCP server
 

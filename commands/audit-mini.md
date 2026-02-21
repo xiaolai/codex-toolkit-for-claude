@@ -163,7 +163,7 @@ After all audits complete, compile findings:
 **Scope**: {what was audited}
 **Files**: {count}
 **Model**: {chosen_model} | **Effort**: {chosen_effort}
-**Thread ID**: `{threadId}` _(use `/codex-continue {threadId}` to iterate on findings)_
+**Thread ID**: `{threadId}` _(use `/continue {threadId}` to iterate on findings)_
 **Verdict**: CLEAN / NEEDS ATTENTION / NEEDS WORK
 
 ## Findings
@@ -190,8 +190,8 @@ After all audits complete, compile findings:
 
 ## Notes
 
-- For security/performance/dependency audits, run `/codex-audit --full`
-- For verification after fixes, run `/codex-verify`
+- For security/performance/dependency audits, run `/audit --full`
+- For verification after fixes, run `/verify`
 ```
 
 ### Phase 4: Fallback - Manual Audit
@@ -235,7 +235,7 @@ When Codex returns nothing:
 
 ### When to Use Full Audit Instead
 
-Use `/codex-audit` instead of `/codex-audit-mini` when:
+Use `/audit` instead of `/audit-mini` when:
 - Auditing security-sensitive code (auth, payments, crypto)
 - Reviewing dependencies or third-party integrations
 - Checking performance-critical paths

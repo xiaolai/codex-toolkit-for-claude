@@ -162,7 +162,7 @@ Format as:
 
 **Plan**: {filename}
 **Model**: {chosen_model} | **Effort**: {chosen_effort}
-**Thread ID**: `{threadId}` _(use `/codex-continue {threadId}` to iterate on findings)_
+**Thread ID**: `{threadId}` _(use `/continue {threadId}` to iterate on findings)_
 **Verdict**: READY TO BUILD / NEEDS REVISION / MAJOR GAPS
 
 ## Findings by Dimension

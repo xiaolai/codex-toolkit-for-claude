@@ -106,7 +106,7 @@ mcp__codex__codex with:
 ```
 If Codex does not respond, fall back to manual audit and STOP (no fix loop without Codex).
 
-Run the audit using the appropriate prompt from `codex-audit.md` (full) or `codex-audit-mini.md` (mini). For each file in scope:
+Run the audit using the appropriate prompt from `audit.md` (full) or `audit-mini.md` (mini). For each file in scope:
 
 ```
 mcp__codex__codex with:
@@ -320,7 +320,7 @@ Parse verification results:
 **Audit type**: Full (9-dim) / Mini (5-dim)
 **Fixer**: {Claude / Codex}
 **Model**: {chosen_model} | **Effort**: {chosen_effort} | **Sandbox**: {chosen_sandbox}
-**Thread ID**: `{audit_threadId}` _(use `/codex-continue {audit_threadId}` to iterate further — Codex only)_
+**Thread ID**: `{audit_threadId}` _(use `/continue {audit_threadId}` to iterate further — Codex only)_
 **Rounds**: {iteration count}
 
 ## Result: {ACCEPTED / PARTIAL / UNCHANGED}
@@ -357,7 +357,7 @@ Parse verification results:
 - Run tests: {project-appropriate test command}
 - Commit: if satisfied with the fixes
 - Revert: `git checkout .` to undo all changes
-- Continue: `/codex-continue {audit_threadId}` to address remaining issues
+- Continue: `/continue {audit_threadId}` to address remaining issues
 ```
 
 ### Verdicts

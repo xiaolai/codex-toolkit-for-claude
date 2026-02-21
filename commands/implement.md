@@ -83,7 +83,7 @@ After Codex finishes:
 ## Codex Implementation Complete
 
 **Model**: {chosen_model} | **Effort**: {chosen_effort} | **Sandbox**: {chosen_sandbox}
-**Thread ID**: `{threadId}` _(use `/codex-continue {threadId}` to iterate)_
+**Thread ID**: `{threadId}` _(use `/continue {threadId}` to iterate)_
 
 **Files created**: {list}
 **Files modified**: {list}

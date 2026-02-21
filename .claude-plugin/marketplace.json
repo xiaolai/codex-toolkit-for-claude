@@ -8,7 +8,7 @@
   },
   "plugins": [
     {
-      "name": "codex-toolkit-for-claude",
+      "name": "codex-toolkit",
       "source": {
         "source": "github",
         "repo": "xiaolai/codex-toolkit-for-claude"

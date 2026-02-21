@@ -13,7 +13,7 @@ $ARGUMENTS
 
 Uses the `codex-reply` MCP tool to continue a previous Codex session. The thread preserves full context from the original command, so you can:
 
-> **Note**: Codex threads are **in-memory only** — they are lost when the MCP server restarts (e.g. after restarting Claude Code or the Codex MCP process). If a thread is no longer available, start a fresh session with the appropriate `/codex-*` command instead.
+> **Note**: Codex threads are **in-memory only** — they are lost when the MCP server restarts (e.g. after restarting Claude Code or the Codex MCP process). If a thread is no longer available, start a fresh session with the appropriate `/codex-toolkit:*` command instead.
 
 - Iterate on audit findings: "Now fix the 3 Critical issues you found"
 - Follow up on implementation: "Run the tests and fix any failures"
@@ -40,9 +40,9 @@ AskUserQuestion:
   header: "Thread ID"
   options:
     - label: "Paste thread ID"
-      description: "The threadId shown in the output of your previous /codex-* command"
+      description: "The threadId shown in the output of your previous /codex-toolkit:* command"
     - label: "I don't have one"
-      description: "Start a new session with /codex-audit, /codex-implement, etc. instead"
+      description: "Start a new session with /audit, /implement, etc. instead"
 ```
 
 If the user doesn't have a threadId, suggest they run one of the main commands first and STOP.
@@ -79,7 +79,7 @@ Tell the user:
 Thread `{threadId}` is no longer available — Codex threads are in-memory only and are lost when the MCP server restarts.
 
 Options:
-- Start a fresh session: /codex-audit, /codex-implement, /codex-bug-analyze, etc.
+- Start a fresh session: /audit, /implement, /bug-analyze, etc.
 - Re-run the original command to create a new thread
 ```
 And STOP.
@@ -100,12 +100,12 @@ Present the response:
 
 ---
 
-_Thread ID: `{threadId}` — run `/codex-continue {threadId}` to continue this conversation._
+_Thread ID: `{threadId}` — run `/continue {threadId}` to continue this conversation._
 ```
 
 ### Step 4: Offer to continue
 
 Ask the user what to do next:
-- Continue the conversation (another `/codex-continue`)
+- Continue the conversation (another `/continue`)
 - Start a fresh command
 - Done

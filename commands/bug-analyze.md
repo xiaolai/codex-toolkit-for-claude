@@ -157,7 +157,7 @@ mcp__codex__codex with:
 **Date**: {today}
 **Bug**: {summary of user's description}
 **Model**: {chosen_model} | **Effort**: {chosen_effort}
-**Thread ID**: `{threadId}` _(use `/codex-continue {threadId}` to drill deeper)_
+**Thread ID**: `{threadId}` _(use `/continue {threadId}` to drill deeper)_
 
 ## Executive Summary
 

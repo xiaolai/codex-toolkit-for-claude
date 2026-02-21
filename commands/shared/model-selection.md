@@ -10,7 +10,7 @@ Before starting, discover which Codex models are currently available and check f
 
 ### Step 0: Load project config (if exists)
 
-Check if `.codex-toolkit-for-claude.md` exists in the current working directory. If it does, read it and extract:
+Check if `.codex-toolkit.md` exists in the current working directory. If it does, read it and extract:
 
 - **Default model** — use as the recommended model (overrides the calling command's recommendation)
 - **Default effort** — use as the recommended effort level
@@ -20,11 +20,11 @@ Check if `.codex-toolkit-for-claude.md` exists in the current working directory.
 - **Skip patterns** — file patterns to exclude from audits
 - **Project-specific instructions** — appended to developer-instructions for all commands
 
-If `.codex-toolkit-for-claude.md` does not exist, use the calling command's built-in defaults. Do NOT ask the user to run `/codex-init` — it's optional.
+If `.codex-toolkit.md` does not exist, use the calling command's built-in defaults. Do NOT ask the user to run `/init` — it's optional.
 
 **Priority order** (highest wins):
 1. User's explicit choice (from AskUserQuestion)
-2. Project config (`.codex-toolkit-for-claude.md`)
+2. Project config (`.codex-toolkit.md`)
 3. Command's built-in defaults
 
 ### Step A: Run preflight discovery

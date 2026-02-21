@@ -47,9 +47,9 @@ If no audit report found, respond:
 No previous audit report found.
 
 Options:
-1. Run /codex-audit first to generate baseline
-2. Provide report: /codex-verify audit-2025-11-18.md
-3. Paste inline: /codex-verify [audit report text]
+1. Run /audit first to generate baseline
+2. Provide report: /verify audit-2025-11-18.md
+3. Paste inline: /verify [audit report text]
 ```
 And STOP - do not launch Codex.
 
@@ -119,7 +119,7 @@ mcp__codex__codex with:
 **Date**: {today}
 **Original Audit**: {audit date/file}
 **Model**: {chosen_model} | **Effort**: {chosen_effort}
-**Thread ID**: `{threadId}` _(use `/codex-continue {threadId}` to iterate on findings)_
+**Thread ID**: `{threadId}` _(use `/continue {threadId}` to iterate on findings)_
 **Status**: PASSED / PARTIAL / FAILED
 
 ## Summary by Dimension
