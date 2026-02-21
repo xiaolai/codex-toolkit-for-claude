@@ -9,7 +9,10 @@
   "plugins": [
     {
       "name": "codex-toolkit-for-claude",
-      "source": ".",
+      "source": {
+        "source": "github",
+        "repo": "xiaolai/codex-toolkit-for-claude"
+      },
       "description": "Audit, implement, verify, review, and debug via OpenAI Codex MCP",
       "version": "0.2.0",
       "author": {
