@@ -28,17 +28,25 @@ export OPENAI_API_KEY="your-key-here"
 
 ### Install the plugin
 
+First, add the marketplace (once):
+
 ```
-/plugin install codex-toolkit-for-claude
+/plugin marketplace add xiaolai/codex-toolkit-for-claude
+```
+
+Then install:
+
+```
+/plugin install codex-toolkit-for-claude@xiaolai-codex
 ```
 
 Choose an install scope based on your needs:
 
 | Scope | Command | Effect |
 |-------|---------|--------|
-| **User** (default) | `/plugin install codex-toolkit-for-claude` | Available in all your projects |
-| **Project** | `/plugin install codex-toolkit-for-claude --scope project` | Shared with team via `.claude/settings.json` (committed to repo) |
-| **Local** | `/plugin install codex-toolkit-for-claude --scope local` | Only you, only this repo (gitignored) |
+| **User** (default) | `/plugin install codex-toolkit-for-claude@xiaolai-codex` | Available in all your projects |
+| **Project** | `/plugin install codex-toolkit-for-claude@xiaolai-codex --scope project` | Shared with team via `.claude/settings.json` (committed to repo) |
+| **Local** | `/plugin install codex-toolkit-for-claude@xiaolai-codex --scope local` | Only you, only this repo (gitignored) |
 
 ### Configure for your project (optional)
 

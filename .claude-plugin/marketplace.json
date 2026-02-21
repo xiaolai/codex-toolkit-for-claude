@@ -1,0 +1,24 @@
+{
+  "name": "xiaolai-codex",
+  "owner": {
+    "name": "xiaolai"
+  },
+  "metadata": {
+    "description": "OpenAI Codex MCP integration for Claude Code"
+  },
+  "plugins": [
+    {
+      "name": "codex-toolkit-for-claude",
+      "source": ".",
+      "description": "Audit, implement, verify, review, and debug via OpenAI Codex MCP",
+      "version": "0.2.0",
+      "author": {
+        "name": "xiaolai"
+      },
+      "repository": "https://github.com/xiaolai/codex-toolkit-for-claude",
+      "license": "MIT",
+      "keywords": ["codex", "openai", "audit", "mcp", "code-review"],
+      "category": "developer-tools"
+    }
+  ]
+}
