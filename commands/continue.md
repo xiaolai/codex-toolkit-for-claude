@@ -11,9 +11,9 @@ $ARGUMENTS
 
 ## What This Does
 
-Uses the `codex-reply` MCP tool to continue a previous Codex session. The thread preserves full context from the original command, so you can:
+Uses the `mcp__codex__codex-reply` MCP tool to continue a previous Codex session. The thread preserves full context from the original command, so you can:
 
-> **Note**: Codex threads are **in-memory only** — they are lost when the MCP server restarts (e.g. after restarting Claude Code or the Codex MCP process). If a thread is no longer available, start a fresh session with the appropriate `/codex-toolkit:*` command instead.
+> **Note**: Codex threads are **in-memory only** — they are lost when the MCP server restarts (e.g. after restarting Claude Code or the Codex MCP process). If a thread is no longer available, start a fresh session with the appropriate command instead.
 
 - Iterate on audit findings: "Now fix the 3 Critical issues you found"
 - Follow up on implementation: "Run the tests and fix any failures"
@@ -32,7 +32,7 @@ Extract the `threadId` and follow-up prompt from `$ARGUMENTS`:
 | `<threadId>` (no prompt) | Ask the user for the follow-up prompt |
 | (empty) | Ask the user for both threadId and prompt |
 
-If `$ARGUMENTS` is empty or missing the threadId, ask:
+If `$ARGUMENTS` is empty or missing the threadId:
 
 ```
 AskUserQuestion:
@@ -40,14 +40,14 @@ AskUserQuestion:
   header: "Thread ID"
   options:
     - label: "Paste thread ID"
-      description: "The threadId shown in the output of your previous /codex-toolkit:* command"
+      description: "The threadId shown in the output of your previous command"
     - label: "I don't have one"
       description: "Start a new session with /audit, /implement, etc. instead"
 ```
 
 If the user doesn't have a threadId, suggest they run one of the main commands first and STOP.
 
-If the follow-up prompt is missing, ask:
+If the follow-up prompt is missing:
 
 ```
 AskUserQuestion:
@@ -64,8 +64,6 @@ AskUserQuestion:
 
 ### Step 2: Send follow-up to Codex
 
-Use ToolSearch to find and load `mcp__codex__codex-reply`, then call it:
-
 ```
 mcp__codex__codex-reply with:
   threadId: {threadId}
@@ -74,7 +72,6 @@ mcp__codex__codex-reply with:
 
 **If `codex-reply` fails** (thread not found / expired / MCP server restarted):
 
-Tell the user:
 ```
 Thread `{threadId}` is no longer available — Codex threads are in-memory only and are lost when the MCP server restarts.
 
@@ -85,8 +82,6 @@ Options:
 And STOP.
 
 ### Step 3: Display response
-
-Present the response:
 
 ```markdown
 ## Codex Follow-up

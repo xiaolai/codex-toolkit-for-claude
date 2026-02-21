@@ -2,7 +2,7 @@
 user-invocable: false
 ---
 <!-- Shared partial: dynamic model selection via codex-preflight -->
-<!-- Referenced by all codex-* commands. Do not use as a standalone command. -->
+<!-- Referenced by all commands. Do not use as a standalone command. -->
 
 ## Model & Settings Selection
 
@@ -10,17 +10,17 @@ Before starting, discover which Codex models are currently available and check f
 
 ### Step 0: Load project config (if exists)
 
-Check if `.codex-toolkit.md` exists in the current working directory. If it does, read it and extract:
+Check if `.codex-toolkit.md` exists in the current working directory. If it does, read it and extract these variables:
 
-- **Default model** — use as the recommended model (overrides the calling command's recommendation)
-- **Default effort** — use as the recommended effort level
-- **Default sandbox** — use as the recommended sandbox level
-- **Default audit type** — used by audit commands to skip the mini/full question
-- **Audit focus** — additional developer-instructions to append
-- **Skip patterns** — file patterns to exclude from audits
-- **Project-specific instructions** — appended to developer-instructions for all commands
+- `{config_default_model}` — Default model
+- `{config_default_effort}` — Default effort
+- `{config_default_sandbox}` — Default sandbox
+- `{config_default_audit_type}` — Default audit type (mini or full)
+- `{config_focus_instructions}` — Audit Focus additional instructions text
+- `{config_skip_patterns}` — Skip patterns (glob list)
+- `{config_project_instructions}` — Project-Specific Instructions text
 
-If `.codex-toolkit.md` does not exist, use the calling command's built-in defaults. Do NOT ask the user to run `/init` — it's optional.
+If `.codex-toolkit.md` does not exist, leave all variables empty and use the calling command's built-in defaults. Do NOT ask the user to run `/init` — it's optional.
 
 **Priority order** (highest wins):
 1. User's explicit choice (from AskUserQuestion)
@@ -81,7 +81,7 @@ Build the option list from the available models. Use these descriptions when kno
 For any model not in this table, use the model name as the description.
 
 **Determining the recommended model**:
-1. If project config specifies a default model AND it's in the available list → use that
+1. If `{config_default_model}` is set AND it's in the available list → use that
 2. Otherwise, use the calling command's recommended model (if available)
 3. If neither is available, mark the first available model as recommended
 
@@ -93,7 +93,7 @@ For any model not in this table, use the model name as the description.
 | `medium` | Standard tasks — balanced speed and depth |
 | `high` | Complex tasks — thorough, catches subtle issues |
 
-Mark the project config's default effort as "(Recommended)" if set, otherwise use the calling command's recommendation.
+Mark `{config_default_effort}` as "(Recommended)" if set, otherwise use the calling command's recommendation.
 
 **Question 3 — Sandbox level** (only if the calling command uses sandbox):
 
@@ -103,19 +103,18 @@ Mark the project config's default effort as "(Recommended)" if set, otherwise us
 | `workspace-write` | Write only within the working directory |
 | `danger-full-access` | Full read/write/execute everywhere |
 
-Mark the project config's default sandbox as "(Recommended)" if set, otherwise use the calling command's recommendation.
+Mark `{config_default_sandbox}` as "(Recommended)" if set, otherwise use the calling command's recommendation.
 
 ### Step D: Apply project config to Codex calls
 
-After the user makes their choices, when building the `mcp__codex__codex` call:
+After the user makes their choices, when building the `mcp__codex__codex` call, you MUST apply config values as follows:
 
-1. **developer-instructions**: Start with the command's role persona, then append:
-   - The project config's "Audit Focus" additional instructions (if any)
-   - The project config's "Project-Specific Instructions" (if any)
+1. **developer-instructions**: Start with the command's role persona, then MUST append:
+   - `{config_focus_instructions}` (if non-empty)
+   - `{config_project_instructions}` (if non-empty)
 
-2. **Skip patterns**: Before sending files to Codex, filter out any files matching the skip patterns from the project config.
+   These are NOT optional — if the config provides them, they MUST be included in every Codex call's developer-instructions.
 
-Example combined developer-instructions:
-```
-"You are a thorough security and code quality auditor. Prioritize security findings. Flag any auth bypass, injection, data exposure, or cryptographic weakness as Critical. This is a TypeScript project using React. Follow existing patterns in src/components/."
-```
+2. **Skip patterns**: Before sending files to Codex, you MUST filter out any files matching `{config_skip_patterns}`. If all files are filtered out, report that and stop.
+
+See `commands/shared/codex-call.md` for the canonical call pattern that enforces these rules.

@@ -8,10 +8,12 @@ OpenAI Codex MCP integration for Claude Code. Slash commands that delegate work 
 commands/           Slash command definitions (*.md with YAML frontmatter)
   shared/
     model-selection.md  Shared partial — dynamic model discovery (user-invocable: false)
+    codex-call.md       Shared partial — availability test, call pattern, thread handling (user-invocable: false)
+    scope-parse.md      Shared partial — scope parsing, trivial check, skip patterns (user-invocable: false)
+    fallback.md         Shared partial — manual fallback rules (user-invocable: false)
   preflight.md        /preflight — connectivity + model check
   implement.md        /implement — autonomous plan execution
-  audit.md            /audit — full 9-dimension code audit
-  audit-mini.md       /audit-mini — fast 5-dimension audit
+  audit.md            /audit — code audit (--full 9-dim or --mini 5-dim)
   verify.md           /verify — verify fixes from previous audit
   bug-analyze.md      /bug-analyze — root cause analysis
   review-plan.md      /review-plan — architectural plan review
@@ -39,42 +41,42 @@ scripts/
 - Multi-step workflows (like audit→fix→verify) should **reuse the same thread** via `mcp__codex__codex-reply` when Codex is the actor, giving it cumulative context. Fall back to a fresh `mcp__codex__codex` call if the thread expires.
 - Codex threads are **in-memory only** — lost on MCP server restart. Always include a fallback path.
 
+### Shared partials
+
+Commands reference shared partials to eliminate boilerplate:
+
+- **model-selection.md** → loads `.codex-toolkit.md` config, runs preflight, presents model/effort/sandbox choices
+- **codex-call.md** → availability test (ping), developer-instructions builder (persona + config focus + config project instructions), canonical call pattern, thread handling, sequential execution rule
+- **scope-parse.md** → unified scope parsing table, skip pattern enforcement against `{config_skip_patterns}`, trivial scope check with AskUserQuestion
+- **fallback.md** → universal "if Codex fails, do it manually" rules
+
+Config enforcement chain: `model-selection.md` (extracts config variables) → `codex-call.md` (applies them to calls) → `scope-parse.md` (applies skip patterns to files).
+
 ### Project config (`.codex-toolkit.md`)
 
 Users can run `/init` to generate a `.codex-toolkit.md` in their project root. This file is optional — all commands work without it.
 
-When present, `commands/shared/model-selection.md` reads it at Step 0 and uses its values as defaults. Priority: user choice > project config > command defaults.
+When present, `commands/shared/model-selection.md` reads it at Step 0 and extracts variables: `{config_default_model}`, `{config_default_effort}`, `{config_default_sandbox}`, `{config_default_audit_type}`, `{config_focus_instructions}`, `{config_skip_patterns}`, `{config_project_instructions}`.
 
-Config fields:
-- **Default model/effort/sandbox** — override recommended values
-- **Default audit type** — mini or full
-- **Audit focus** — balanced, security-first, performance-first, quality-first
-- **Skip patterns** — glob patterns to exclude from audits
-- **Project-specific instructions** — appended to developer-instructions for all commands
+Priority: user choice > project config > command defaults.
 
 ### Command structure
 
 All commands follow this pattern:
-1. Load `.codex-toolkit.md` project config if it exists (Step 0)
-2. Run `scripts/codex-preflight.sh` via `commands/shared/model-selection.md` to discover models
+1. Load `.codex-toolkit.md` project config if it exists (via model-selection.md Step 0)
+2. Run `scripts/codex-preflight.sh` via model-selection.md to discover models
 3. Present choices via `AskUserQuestion` (model, effort, optionally sandbox)
-4. Ping Codex with a short availability test
-5. Send the real task to Codex via `mcp__codex__codex`
-6. If Codex fails or returns empty, fall back to manual analysis
+4. Ping Codex with availability test (via codex-call.md)
+5. Send the real task to Codex via `mcp__codex__codex` (via codex-call.md)
+6. If Codex fails or returns empty, fall back to manual analysis (via fallback.md)
 7. Display structured report with threadId
-
-### Model selection
-
-- Models are discovered dynamically — never hardcode model availability
-- The `commands/shared/model-selection.md` partial handles all model/effort/sandbox selection
-- Each command specifies its recommended model, effort, and whether sandbox is relevant
 
 ### Adding new commands
 
 1. Create `commands/<name>.md` with YAML frontmatter (`description`, optional `argument-hint`)
 2. Reference `commands/shared/model-selection.md` for model selection
-3. Use `config: {"model_reasoning_effort": "..."}` (not top-level)
-4. Add `developer-instructions` with a role persona
-5. Include `threadId` in the report output
-6. Add a fallback section for when Codex is unavailable
+3. Reference `commands/shared/codex-call.md` for availability test and call pattern
+4. Reference `commands/shared/scope-parse.md` if the command takes file/scope arguments
+5. Reference `commands/shared/fallback.md` if manual fallback is needed
+6. Include `threadId` in the report output
 7. Update `README.md` commands table

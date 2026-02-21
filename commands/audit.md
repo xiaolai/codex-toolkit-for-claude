@@ -1,6 +1,6 @@
 ---
-description: Autonomous code auditor running in isolated context - verifies implementation against specs, principles, and quality standards
-argument-hint: "[file-or-dir] [commit -N]"
+description: Code auditor — full 9-dimension or fast 5-dimension audit with --full/--mini flag
+argument-hint: "[scope] [--full | --mini]"
 ---
 
 ## User Input
@@ -9,46 +9,45 @@ argument-hint: "[file-or-dir] [commit -N]"
 $ARGUMENTS
 ```
 
-## Audit Checklist
-
-Use TodoWrite to track progress through these phases:
-
-```
-☐ Reconnaissance: identify scope and structure
-☐ Dimension 1: Redundant & Low-Value Code
-☐ Dimension 2: Security & Risk Management
-☐ Dimension 3: Code Correctness & Reliability
-☐ Dimension 4: Compliance & Standards
-☐ Dimension 5: Maintainability & Readability
-☐ Dimension 6: Performance & Efficiency
-☐ Dimension 7: Testing & Validation
-☐ Dimension 8: Dependency & Environment Safety
-☐ Dimension 9: Documentation & Knowledge Transfer
-☐ Generate comprehensive audit report
-```
-
 ## Model & Settings Selection
 
 Follow the instructions in `commands/shared/model-selection.md` to discover available models and present choices.
 
-- **Recommended model**: `gpt-5.3-codex`
-- **Recommended reasoning effort**: `high`
+- **Recommended model**: `gpt-5.3-codex` (full) / `gpt-5.2-codex` (mini)
+- **Recommended reasoning effort**: `high` (full) / `medium` (mini)
 - **Include sandbox question**: No (audits always use `read-only`)
 
-## Audit Strategy
+## Workflow
 
-**IMPORTANT**: Run Codex calls SEQUENTIALLY (one at a time) to avoid timeouts.
+### Step 1: Determine Audit Type
 
-### Phase 1: Reconnaissance
+Parse `$ARGUMENTS` for `--full` or `--mini` flags (remove the flag from scope arguments):
 
-Parse `$ARGUMENTS` to determine scope:
-| Input | Scope |
-|-------|-------|
-| (empty) | Uncommitted changes (`git diff HEAD --name-only`) |
-| `commit -1` | Last commit (`git diff HEAD~1 --name-only`) |
-| `commit -N` | Last N commits (`git diff HEAD~N --name-only`) |
-| `--full` | Entire codebase (scan src/, lib/, app/) |
-| `path/to/dir` | Specific directory/file |
+| Condition | Audit type |
+|-----------|------------|
+| `--full` flag present | Full (9 dimensions) |
+| `--mini` flag present | Mini (5 dimensions) |
+| `{config_default_audit_type}` is set | Use config value |
+| Neither flag nor config | Ask the user (below) |
+
+If asking:
+
+```
+AskUserQuestion:
+  question: "Which audit depth?"
+  header: "Audit type"
+  options:
+    - label: "Mini (5 dimensions) (Recommended)"
+      description: "Logic, duplication, dead code, refactoring debt, shortcuts — fast"
+    - label: "Full (9 dimensions)"
+      description: "Adds security, performance, compliance, dependencies, documentation — thorough"
+```
+
+Adjust recommended model/effort based on chosen type (full → `gpt-5.3-codex`/`high`, mini → `gpt-5.2-codex`/`medium`).
+
+### Step 2: Scope & Files
+
+Follow `commands/shared/scope-parse.md` to parse remaining arguments, enforce skip patterns, and check for trivial scope.
 
 Identify:
 - Technology stack and languages
@@ -56,122 +55,141 @@ Identify:
 - Entry points (main, routes, controllers)
 - High-risk areas (auth, payments, data processing)
 
-### Phase 1b: Trivial Scope Check
+Skip non-code files (*.md, *.json, *.yaml, *.css, images) unless specifically requested.
 
-Before proceeding, analyze the diff to determine if the changes warrant an audit.
+### Step 3: Audit Execution
 
-**Get the diff**:
-- For uncommitted changes: `git diff HEAD`
-- For commit ranges: `git diff HEAD~N`
-- For specific paths: read the files directly
+Follow `commands/shared/codex-call.md` for availability test and call pattern.
 
-**Classify as trivial if ALL of the following are true**:
-- Total code changes ≤ 5 lines (excluding blank lines and comments)
-- Changes are purely mechanical: typo fixes, formatting, whitespace, import reordering, comment edits, version bumps in config files
-- No logic, control flow, or data handling changes whatsoever
+- **Command persona**: "You are a thorough security and code quality auditor." (full) / "You are a fast code quality reviewer focused on logic, duplication, and dead code." (mini)
+- **Sandbox**: `read-only`
+- **Approval-policy**: `never`
 
-**NEVER classify as trivial if ANY of these apply**:
-- Any change to logic, conditionals, loops, or data flow — even a single character (`>` vs `>=`)
-- Files in security-sensitive paths (auth, crypto, permissions, payments, sessions)
-- New dependencies added or removed
-- Config changes that affect runtime behavior (env vars, feature flags, API endpoints)
-- Changes to error handling or validation
+For each code file, send the appropriate dimension prompt:
 
-**If trivial**:
-```
-AskUserQuestion:
-  question: "This looks like a trivial change ({N} lines — {description, e.g. 'typo fix in comment'}). An audit is unlikely to find anything. Proceed anyway?"
-  header: "Scope"
-  options:
-    - label: "Skip audit (Recommended)"
-      description: "Change is too minor to warrant an audit"
-    - label: "Audit anyway"
-      description: "Run the full audit regardless"
-```
-
-If "Skip audit" → respond with "Scope too trivial for audit — no issues expected." and STOP.
-
-### Phase 2: Audit All 9 Dimensions
-
-**Availability test** — before the real audit, send a short ping to Codex:
-```
-mcp__codex__codex with:
-  prompt: "Respond with 'ok' if you can read this."
-  model: {chosen_model}
-  config: {"model_reasoning_effort": "{chosen_effort}"}
-```
-If Codex does not respond or errors out, skip to **Phase 4: Fallback** immediately. Do not retry.
-
-For each code file, run Codex with comprehensive prompt:
+#### Mini Audit (5 dimensions)
 
 ```
-mcp__codex__codex with:
-  model: {chosen_model}
-  config: {"model_reasoning_effort": "{chosen_effort}"}
-  sandbox: read-only
-  approval-policy: never
-  developer-instructions: "You are a thorough security and code quality auditor."
-  prompt: "Audit {filename} across all 9 dimensions:
+"Mini audit {filename} — focus on code quality:
 
-    **Dimension 1: Redundant & Low-Value Code**
-    - Dead code: unreachable paths, unused functions/imports, commented-out code
-    - Duplicate code: copy-paste patterns, repeated logic
-    - Useless code: unused variables, no-op operations, empty catch blocks
+**Dimension 1: Logic & Correctness**
+- Race conditions, edge cases, off-by-one errors
+- Async issues: missing await, unhandled promises
+- State mutations: unexpected side effects, stale closures
 
-    **Dimension 2: Security & Risk Management**
-    - Input validation: SQL injection, XSS, command injection, path traversal
-    - Sensitive data: hard-coded secrets, logged credentials, unencrypted data
-    - Auth/authz: weak passwords, broken access control, session issues
-    - Cryptography: weak algorithms, improper key management
+**Dimension 2: Duplication**
+- Copy-paste code, repeated patterns, DRY violations
+- Near-duplicates: functions differing by 1-2 lines
 
-    **Dimension 3: Code Correctness & Reliability**
-    - Logic errors: edge cases, boundary conditions, race conditions
-    - Runtime risks: null dereference, array bounds, division by zero
-    - Error handling: missing try-catch, swallowed exceptions, silent failures
-    - Resource leaks: unclosed files, connections, memory
+**Dimension 3: Dead Code**
+- Unused imports, unreachable branches, commented-out code
+- Unused variables, orphaned functions
 
-    **Dimension 4: Compliance & Standards**
-    - Coding standards: naming conventions, code structure
-    - Framework conventions: proper API usage, deprecated features
-    - License compliance: GPL, MIT, Apache compatibility
+**Dimension 4: Refactoring Debt**
+- Long functions (>30 lines), deep nesting (>3 levels)
+- Unclear names, missing abstractions, god objects
 
-    **Dimension 5: Maintainability & Readability**
-    - Complexity: cyclomatic complexity >15, nested conditionals
-    - Size: functions >50 lines, classes >500 lines
-    - Magic numbers: hard-coded values not in constants
-    - DRY violations: repeated logic that should be extracted
+**Dimension 5: Shortcuts & Patches**
+- TODOs left behind, hardcoded values, workarounds
+- Incomplete error handling, quick fixes, backward-compat shims
 
-    **Dimension 6: Performance & Efficiency**
-    - Algorithm efficiency: O(n²) that could be O(n log n)
-    - Database: N+1 queries, missing indexes, no pagination
-    - Memory: excessive allocations, large data not streamed
-    - I/O: blocking operations, unbatched requests
-
-    **Dimension 7: Testing & Validation**
-    - Coverage gaps: critical paths without tests
-    - Test quality: flaky tests, missing edge cases
-    - Missing integration tests
-
-    **Dimension 8: Dependency & Environment Safety**
-    - Vulnerabilities: known CVEs in dependencies
-    - Outdated packages: abandoned or EOL libraries
-    - Config security: secrets in configs, missing .gitignore
-
-    **Dimension 9: Documentation & Knowledge Transfer**
-    - Missing docs: undocumented public APIs
-    - Outdated comments: comments that don't match code
-    - Setup instructions: incomplete or missing
-
-    Report each issue as: file:line | severity(Critical/High/Medium/Low) | dimension | issue | fix"
+Report each issue as: file:line | dimension | severity(High/Medium/Low) | issue | fix"
 ```
 
-**Wait for each Codex call to complete before starting the next one.**
+#### Full Audit (9 dimensions)
 
-Skip non-code files (*.md, *.json, *.css, etc.) unless specifically requested.
+```
+"Audit {filename} across all 9 dimensions:
 
-### Phase 3: Compile Report
+**Dimension 1: Redundant & Low-Value Code**
+- Dead code: unreachable paths, unused functions/imports, commented-out code
+- Duplicate code: copy-paste patterns, repeated logic
+- Useless code: unused variables, no-op operations, empty catch blocks
 
-After all audits complete, compile findings into:
+**Dimension 2: Security & Risk Management**
+- Input validation: SQL injection, XSS, command injection, path traversal
+- Sensitive data: hard-coded secrets, logged credentials, unencrypted data
+- Auth/authz: weak passwords, broken access control, session issues
+- Cryptography: weak algorithms, improper key management
+
+**Dimension 3: Code Correctness & Reliability**
+- Logic errors: edge cases, boundary conditions, race conditions
+- Runtime risks: null dereference, array bounds, division by zero
+- Error handling: missing try-catch, swallowed exceptions, silent failures
+- Resource leaks: unclosed files, connections, memory
+
+**Dimension 4: Compliance & Standards**
+- Coding standards: naming conventions, code structure
+- Framework conventions: proper API usage, deprecated features
+- License compliance: GPL, MIT, Apache compatibility
+
+**Dimension 5: Maintainability & Readability**
+- Complexity: cyclomatic complexity >15, nested conditionals
+- Size: functions >50 lines, classes >500 lines
+- Magic numbers, DRY violations
+
+**Dimension 6: Performance & Efficiency**
+- Algorithm efficiency: O(n^2) that could be O(n log n)
+- Database: N+1 queries, missing indexes, no pagination
+- Memory: excessive allocations; I/O: blocking operations
+
+**Dimension 7: Testing & Validation**
+- Coverage gaps: critical paths without tests
+- Test quality: flaky tests, missing edge cases, missing integration tests
+
+**Dimension 8: Dependency & Environment Safety**
+- Known CVEs, outdated/abandoned packages
+- Config security: secrets in configs, missing .gitignore
+
+**Dimension 9: Documentation & Knowledge Transfer**
+- Missing docs: undocumented public APIs
+- Outdated comments, incomplete setup instructions
+
+Report each issue as: file:line | severity(Critical/High/Medium/Low) | dimension | issue | fix"
+```
+
+### Step 4: Report
+
+#### Mini Report
+
+```markdown
+# Mini Audit Report
+
+**Date**: {today}
+**Scope**: {what was audited}
+**Files**: {count}
+**Model**: {chosen_model} | **Effort**: {chosen_effort}
+**Thread ID**: `{threadId}` _(use `/continue {threadId}` to iterate on findings)_
+**Verdict**: CLEAN / NEEDS ATTENTION / NEEDS WORK
+
+## Findings
+
+| File:Line | Dim | Severity | Issue | Fix |
+|-----------|-----|----------|-------|-----|
+| ... | ... | ... | ... | ... |
+
+## Summary by Dimension
+
+| Dimension | High | Medium | Low |
+|-----------|------|--------|-----|
+| 1. Logic & Correctness | X | X | X |
+| 2. Duplication | X | X | X |
+| 3. Dead Code | X | X | X |
+| 4. Refactoring Debt | X | X | X |
+| 5. Shortcuts & Patches | X | X | X |
+
+## Action Items
+
+1. **[High]** {action} - {file:line}
+2. ...
+
+## Notes
+
+- For security/performance/dependency audits, run `/audit --full`
+- For verification after fixes, run `/verify`
+```
+
+#### Full Report
 
 ```markdown
 # Audit Report
@@ -207,61 +225,22 @@ After all audits complete, compile findings into:
 |-----------|----------|-------|-----|
 | ... | ... | ... | ... |
 
-### Dimension 2: Security & Risk Management
-...
-
 [Continue for all 9 dimensions]
 
 ## Top Priority Actions
 
 1. **[Critical]** {action} - {file:line}
-2. **[Critical]** {action} - {file:line}
-3. **[High]** {action} - {file:line}
+2. ...
 
 ## Positive Observations
 - {good practice found}
-- {good practice found}
 ```
 
-### Phase 4: Fallback - Manual Audit
+### Step 5: Fallback
 
-**CRITICAL**: If Codex returns empty/no findings, you MUST perform the audit manually.
+Follow `commands/shared/fallback.md`. Use Grep to search for common issues:
 
-When Codex returns nothing or incomplete results:
-
-1. **Read each file** using the Read tool
-2. **Analyze all 9 dimensions** as described above
-3. **Use Grep** to search for common issues:
-   ```bash
-   # Dimension 1: Dead code markers
-   grep -rn "TODO\|FIXME\|HACK\|XXX\|DEPRECATED" src/
-
-   # Dimension 2: Security patterns
-   grep -rn "password\|api_key\|secret\|token\|eval\|exec\|innerHTML" src/
-
-   # Dimension 3: Error handling
-   grep -rn "except:\|catch.*{}\|\.catch\(\)" src/
-
-   # Dimension 8: Dependency check
-   npm audit 2>/dev/null || pip-audit 2>/dev/null || echo "Run dependency scan"
-   ```
-
-4. **Report findings** in the same format as Phase 3
-
-**Do NOT say "Codex didn't return findings" and stop. Always complete the audit manually if Codex fails.**
-
-### Example Execution
-
-```
-1. User picks model + effort level
-2. Determine scope: git diff HEAD --name-only → [file1.py, file2.py]
-3. Create todo list with all 11 phases
-4. Mark "Reconnaissance" in_progress, identify structure
-5. Mark "Reconnaissance" complete, start "Dimension 1"
-6. Run Codex for file1.py (wait for completion)
-7. If Codex empty → Read file1.py and analyze manually
-8. Repeat for file2.py
-9. Progress through all dimensions
-10. Mark each dimension complete as you go
-11. Compile final report
-```
+- Dead code markers: `TODO|FIXME|HACK|XXX|DEPRECATED`
+- Security patterns: `password|api_key|secret|token|eval|exec|innerHTML`
+- Error handling: `except:|catch.*{}|\.catch\(\)`
+- Shortcut indicators: `workaround|temporary|quick fix`

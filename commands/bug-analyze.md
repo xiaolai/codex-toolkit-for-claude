@@ -1,5 +1,5 @@
 ---
-description: Analyze codebase to find root causes of user-described bugs and related issues using Codex
+description: Root cause analysis for user-described bugs using Codex
 argument-hint: "<bug description>"
 ---
 
@@ -17,20 +17,9 @@ Follow the instructions in `commands/shared/model-selection.md` to discover avai
 - **Recommended reasoning effort**: `high`
 - **Include sandbox question**: No (bug analysis always uses `read-only`)
 
-## Analysis Strategy
+## Workflow
 
-Use TodoWrite to track progress:
-
-```
-☐ Parse bug description and identify symptoms
-☐ Reconnaissance: identify relevant code areas
-☐ Deep analysis: trace data flow and logic
-☐ Root cause identification
-☐ Related bug detection
-☐ Generate analysis report
-```
-
-### Phase 1: Parse Bug Description
+### Step 1: Parse Bug Description
 
 Extract from `$ARGUMENTS`:
 - **Symptoms**: What behavior is observed?
@@ -38,7 +27,7 @@ Extract from `$ARGUMENTS`:
 - **Context**: When/where does it occur?
 - **Keywords**: Key terms to search for
 
-### Phase 2: Reconnaissance
+### Step 2: Reconnaissance
 
 Identify scope using symptoms and keywords:
 
@@ -52,104 +41,80 @@ Identify scope using symptoms and keywords:
    - What is the data flow?
    - What are the dependencies?
 
-### Phase 3: Deep Analysis with Codex
+If the bug description references specific files or paths, use `commands/shared/scope-parse.md` for skip pattern enforcement against `{config_skip_patterns}`.
 
-**IMPORTANT**: Run Codex calls SEQUENTIALLY (one at a time).
+### Step 3: Deep Analysis with Codex
 
-**Availability test** — before the real analysis, send a short ping to Codex:
-```
-mcp__codex__codex with:
-  prompt: "Respond with 'ok' if you can read this."
-  model: {chosen_model}
-  config: {"model_reasoning_effort": "{chosen_effort}"}
-```
-If Codex does not respond or errors out, skip to **Phase 5: Fallback** immediately. Do not retry.
+Follow `commands/shared/codex-call.md` for availability test and call pattern.
 
-For each relevant file, run Codex:
+- **Command persona**: "You are a root cause analyst. Trace bugs to their origin."
+- **Sandbox**: `read-only`
+- **Approval-policy**: `never`
+
+For each relevant file:
 
 ```
-mcp__codex__codex with:
-  model: {chosen_model}
-  config: {"model_reasoning_effort": "{chosen_effort}"}
-  sandbox: read-only
-  approval-policy: never
-  developer-instructions: "You are a root cause analyst. Trace bugs to their origin."
-  prompt: "Analyze {filename} for potential causes of this bug:
+prompt: "Analyze {filename} for potential causes of this bug:
 
-    BUG DESCRIPTION: {user's bug description}
+BUG DESCRIPTION: {user's bug description}
 
-    Investigate:
+Investigate:
 
-    1. **Logic Flow Analysis**
-       - Trace the execution path related to the symptoms
-       - Identify conditional branches that could cause the issue
-       - Check loop conditions and termination
-       - Look for off-by-one errors or boundary issues
+1. **Logic Flow Analysis**
+   - Trace execution path related to symptoms
+   - Identify conditional branches that could cause the issue
+   - Check loop conditions and termination
+   - Look for off-by-one errors or boundary issues
 
-    2. **State Management**
-       - Check for race conditions or timing issues
-       - Look for stale state or cache problems
-       - Identify mutation of shared state
-       - Check for async/await issues
+2. **State Management**
+   - Race conditions or timing issues
+   - Stale state or cache problems
+   - Mutation of shared state, async/await issues
 
-    3. **Data Flow**
-       - Trace data transformations
-       - Check type coercion or conversion issues
-       - Look for null/undefined propagation
-       - Identify truncation or overflow possibilities
+3. **Data Flow**
+   - Data transformations, type coercion
+   - Null/undefined propagation
+   - Truncation or overflow possibilities
 
-    4. **Error Handling**
-       - Check for swallowed exceptions
-       - Look for missing error cases
-       - Identify incomplete cleanup on failure
+4. **Error Handling**
+   - Swallowed exceptions, missing error cases
+   - Incomplete cleanup on failure
 
-    5. **Edge Cases**
-       - Empty inputs, null values, zero values
-       - Boundary conditions (min/max)
-       - Concurrent access patterns
-       - Resource exhaustion scenarios
+5. **Edge Cases**
+   - Empty inputs, null/zero values, boundary conditions
+   - Concurrent access, resource exhaustion
 
-    Report findings as:
-    - LIKELY CAUSE: {description} at {file:line}
-    - CONTRIBUTING FACTOR: {description} at {file:line}
-    - RELATED RISK: {description} at {file:line}"
+Report findings as:
+- LIKELY CAUSE: {description} at {file:line}
+- CONTRIBUTING FACTOR: {description} at {file:line}
+- RELATED RISK: {description} at {file:line}"
 ```
 
-**Wait for each Codex call to complete before starting the next one.**
-
-### Phase 4: Root Cause Identification
+### Step 4: Root Cause Identification
 
 After analyzing all relevant files:
 
-1. **Correlate findings** - Which issues appear across multiple files?
-2. **Trace causality** - What triggers the chain of events?
-3. **Identify the root** - What single change would prevent the bug?
+1. **Correlate findings** — which issues appear across multiple files?
+2. **Trace causality** — what triggers the chain of events?
+3. **Identify the root** — what single change would prevent the bug?
 
-### Phase 5: Related Bug Detection
-
-Search for similar patterns that could cause related bugs:
+### Step 5: Related Bug Detection
 
 ```
-mcp__codex__codex with:
-  model: {chosen_model}
-  config: {"model_reasoning_effort": "{chosen_effort}"}
-  sandbox: read-only
-  approval-policy: never
-  developer-instructions: "You are a root cause analyst. Trace bugs to their origin."
-  prompt: "Based on the root cause pattern found ({root cause}),
-    search the codebase for similar patterns that could cause related bugs.
+prompt: "Based on the root cause pattern found ({root cause}),
+search the codebase for similar patterns that could cause related bugs.
 
-    Look for:
-    1. Same anti-pattern in other files
-    2. Similar logic that shares the same flaw
-    3. Code that depends on the buggy behavior
-    4. Copy-pasted code with the same issue
+Look for:
+1. Same anti-pattern in other files
+2. Similar logic that shares the same flaw
+3. Code that depends on the buggy behavior
+4. Copy-pasted code with the same issue
 
-    Report each as:
-    - RELATED BUG RISK: {file:line} - {description}"
+Report each as:
+- RELATED BUG RISK: {file:line} - {description}"
 ```
 
-### Phase 6: Generate Report
+### Step 6: Report
 
 ```markdown
 # Bug Analysis Report
@@ -183,9 +148,7 @@ mcp__codex__codex with:
 
 ## Data/Logic Flow
 
-```
 {step-by-step flow showing where things go wrong}
-```
 
 ## Related Bugs Found
 
@@ -197,40 +160,24 @@ mcp__codex__codex with:
 
 ### Immediate Fix
 1. {specific action at file:line}
-2. {specific action at file:line}
 
-### Proper Fix (if different from immediate)
-{Description of more thorough solution if band-aid vs proper fix differ}
+### Proper Fix (if different)
+{More thorough solution if band-aid vs proper fix differ}
 
 ### Test Cases to Add
 1. {test case description}
-2. {test case description}
 
 ## Prevention
 
-How to prevent similar bugs:
 - {coding practice}
 - {review checklist item}
 - {test strategy}
 ```
 
-### Fallback: Manual Analysis
+### Step 7: Fallback
 
-**CRITICAL**: If Codex returns empty/incomplete findings, perform manual analysis:
+Follow `commands/shared/fallback.md`. Use Grep to find related patterns:
 
-1. **Read each relevant file** using the Read tool
-2. **Trace execution manually** following the bug symptoms
-3. **Use Grep** to find related patterns:
-   ```bash
-   # Find similar patterns
-   grep -rn "{key function or variable}" src/
-
-   # Find error handling
-   grep -rn "catch\|except\|error" {relevant files}
-
-   # Find state mutations
-   grep -rn "setState\|set\|update\|mutate" {relevant files}
-   ```
-4. **Report findings** in the same format
-
-**Do NOT stop if Codex returns empty. Always complete the analysis.**
+- Key function/variable names from bug description
+- Error handling: `catch|except|error`
+- State mutations: `setState|set|update|mutate`

@@ -33,56 +33,16 @@ Follow the instructions in `commands/shared/model-selection.md` to discover avai
 
 ### Step 1: Determine audit type and scope
 
-Parse `$ARGUMENTS`:
+Parse `$ARGUMENTS` for `--full` or `--mini` flags (remove from scope arguments):
 
-| Input | Interpretation |
-|-------|----------------|
-| (empty) | Mini audit on uncommitted changes |
-| `--full` | Full 9-dimension audit on uncommitted changes |
-| `--mini` | Mini 5-dimension audit (explicit, same as default) |
-| `--full path/to/dir` | Full audit on specific path |
-| `path/to/file` | Mini audit on specific file/directory |
-| `commit -N` | Mini audit on last N commits |
-| `--full commit -N` | Full audit on last N commits |
+| Condition | Audit type |
+|-----------|------------|
+| `--full` flag present | Full (9 dimensions) |
+| `--mini` flag present | Mini (5 dimensions) |
+| `{config_default_audit_type}` is set | Use config value |
+| Neither flag nor config | Ask the user (below) |
 
-If scope is empty (no changes), tell the user and STOP.
-
-### Step 1b: Trivial Scope Check
-
-Before proceeding, analyze the diff to determine if the changes warrant an audit.
-
-**Get the diff**:
-- For uncommitted changes: `git diff HEAD`
-- For commit ranges: `git diff HEAD~N`
-- For specific paths: read the files directly
-
-**Classify as trivial if ALL of the following are true**:
-- Total code changes ≤ 5 lines (excluding blank lines and comments)
-- Changes are purely mechanical: typo fixes, formatting, whitespace, import reordering, comment edits, version bumps in config files
-- No logic, control flow, or data handling changes whatsoever
-
-**NEVER classify as trivial if ANY of these apply**:
-- Any change to logic, conditionals, loops, or data flow — even a single character (`>` vs `>=`)
-- Files in security-sensitive paths (auth, crypto, permissions, payments, sessions)
-- New dependencies added or removed
-- Config changes that affect runtime behavior (env vars, feature flags, API endpoints)
-- Changes to error handling or validation
-
-**If trivial**:
-```
-AskUserQuestion:
-  question: "This looks like a trivial change ({N} lines — {description, e.g. 'typo fix in comment'}). An audit is unlikely to find anything. Proceed anyway?"
-  header: "Scope"
-  options:
-    - label: "Skip audit (Recommended)"
-      description: "Change is too minor to warrant an audit"
-    - label: "Audit anyway"
-      description: "Run the audit→fix loop regardless"
-```
-
-If "Skip audit" → respond with "Scope too trivial for audit — no issues expected." and STOP.
-
-Ask the user to confirm:
+If asking:
 
 ```
 AskUserQuestion:
@@ -95,48 +55,33 @@ AskUserQuestion:
       description: "Adds security, performance, compliance, dependencies, documentation — thorough"
 ```
 
+Follow `commands/shared/scope-parse.md` for remaining argument parsing, skip pattern enforcement, and trivial scope check.
+
 ### Step 2: Run initial audit
 
-**Availability test** — ping Codex first:
-```
-mcp__codex__codex with:
-  prompt: "Respond with 'ok' if you can read this."
-  model: {chosen_model}
-  config: {"model_reasoning_effort": "{chosen_effort}"}
-```
+Follow `commands/shared/codex-call.md` for availability test and call pattern.
+
 If Codex does not respond, fall back to manual audit and STOP (no fix loop without Codex).
 
-Run the audit using the appropriate prompt from `audit.md` (full) or `audit-mini.md` (mini). For each file in scope:
+- **Command persona**: "You are a thorough code auditor. Report every issue with exact file:line locations."
+- **Sandbox**: `read-only`
+- **Approval-policy**: `never`
 
-```
-mcp__codex__codex with:
-  model: {chosen_model}
-  config: {"model_reasoning_effort": "{chosen_effort}"}
-  sandbox: read-only
-  approval-policy: never
-  developer-instructions: "You are a thorough code auditor. Report every issue with exact file:line locations."
-  prompt: "{audit prompt for the chosen audit type, per file}"
-```
+Use the audit prompts from `commands/audit.md` (full or mini, matching the chosen type). Run per file.
 
-**Wait for each call to complete before the next.**
+**Save the `threadId`** as `{audit_threadId}` for reuse in fix and verify steps.
 
-Collect all findings into a structured audit report (same format as codex-audit or codex-audit-mini).
-
-**Save the `threadId`** from the audit Codex call as `{audit_threadId}`. This will be reused for fix and verify steps when Codex is the fixer, giving it cumulative context about what it found.
-
-Display the report to the user.
+Collect all findings into a structured audit report. Display it to the user.
 
 If **no issues found** → report CLEAN and STOP.
 
 ### Step 3: Fix loop
 
-**IMPORTANT**: Maximum **3 iterations** of the fix→verify cycle. After 3 rounds, stop and report remaining issues regardless.
+**IMPORTANT**: Maximum **3 iterations** of the fix→verify cycle. After 3 rounds, stop and report remaining issues.
 
 Set `iteration = 1`.
 
 #### 3a: Ask before fixing
-
-Show the findings summary and ask two questions:
 
 **Question 1 — Scope** (severity filter):
 
@@ -154,7 +99,7 @@ AskUserQuestion:
       description: "Keep the audit report, fix manually"
 ```
 
-For a **mini audit** (no Critical severity — uses High/Medium/Low only):
+For a **mini audit** (uses High/Medium/Low only):
 ```
 AskUserQuestion:
   question: "Found {N} issues ({high} High, {medium} Medium, {low} Low). Fix them?"
@@ -183,31 +128,23 @@ AskUserQuestion:
       description: "Send to Codex for autonomous fixing — sandboxed, isolated"
 ```
 
-Store the choice as `{chosen_fixer}` for use in 3b.
+Store as `{chosen_fixer}`.
 
 #### 3b: Fix issues
 
 ##### If `{chosen_fixer}` is **Claude**:
 
-Fix each issue directly using Claude's tools:
-
-1. For each issue in the filtered findings list:
-   - Read the file at the reported location
-   - Understand the surrounding context
-   - Apply the minimal correct fix using the Edit tool
-   - If a fix requires changing multiple related locations, fix all of them
-2. Do NOT refactor surrounding code — only fix what was reported
-3. Do NOT delete code unless the issue specifically calls for removal (dead code, unused imports)
-4. After fixing all issues, run available tests if the project has them
-5. Show a summary of what was fixed
-
-Display a summary of changes:
-- Run `git diff --stat` to show modified files
-- List each fix applied: file:line, what was changed
+1. For each issue in the filtered findings:
+   - Read the file, understand context, apply minimal correct fix via Edit
+   - Fix all related locations if needed
+2. Do NOT refactor surrounding code — only fix reported issues
+3. Do NOT delete code unless the issue calls for removal (dead code, unused imports)
+4. After fixing, run available tests if the project has them
+5. Show summary: `git diff --stat` + list of fixes applied
 
 ##### If `{chosen_fixer}` is **Codex**:
 
-**Reuse the audit thread** via `codex-reply` so Codex has full context of what it found:
+**Reuse the audit thread** via `codex-reply`:
 
 ```
 mcp__codex__codex-reply with:
@@ -220,35 +157,22 @@ ISSUES TO FIX:
 RULES:
 - Fix each issue at the exact location reported
 - Make minimal, targeted changes — do not refactor surrounding code
-- If a fix requires changing multiple related locations, fix all of them
-- Do not delete code unless the issue specifically calls for removal (dead code, unused imports)
-- After fixing all issues, run any available tests to check for regressions
+- Do not delete code unless the issue specifically calls for removal
+- After fixing, run any available tests
 - Report: what you fixed, what you couldn't fix, and any test results"
 ```
 
-**Fallback**: If `codex-reply` fails (e.g. thread expired or MCP server restarted), fall back to a fresh `codex` call:
-
-```
-mcp__codex__codex with:
-  model: {chosen_model}
-  config: {"model_reasoning_effort": "{chosen_effort}"}
-  sandbox: {chosen_sandbox}
-  approval-policy: never
-  developer-instructions: "You are an autonomous code fixer. Fix every issue precisely at the reported location. Do not introduce new issues."
-  prompt: "{same prompt as above}"
-```
+**Fallback**: If `codex-reply` fails (thread expired), use a fresh `mcp__codex__codex` call following `commands/shared/codex-call.md`:
+- **Command persona**: "You are an autonomous code fixer. Fix every issue precisely at the reported location. Do not introduce new issues."
+- **Sandbox**: `{chosen_sandbox}`
 
 Update `{audit_threadId}` to the new threadId from whichever call succeeded.
 
-**Wait for Codex to complete.**
-
-Display a summary of what Codex changed:
-- Run `git diff --stat` to show modified files
-- Show Codex's fix report
+Display summary: `git diff --stat` + Codex's fix report.
 
 #### 3c: Verify fixes
 
-**If `{chosen_fixer}` was Codex** — continue the same thread so Codex can verify its own fixes with full context:
+**If `{chosen_fixer}` was Codex** — continue the same thread:
 
 ```
 mcp__codex__codex-reply with:
@@ -256,7 +180,7 @@ mcp__codex__codex-reply with:
   prompt: "Verify whether the following issues have been fixed. Check each file at the exact location.
 
 ORIGINAL ISSUES:
-{the issues that were sent for fixing}
+{the issues sent for fixing}
 
 For each issue report:
 - FIXED — issue resolved properly
@@ -265,33 +189,17 @@ For each issue report:
 - REGRESSED — fix introduced a new problem (describe it)"
 ```
 
-**If `{chosen_fixer}` was Claude** — use a fresh Codex call for independent verification (Claude already applied fixes, Codex verifies with fresh eyes):
+**If `{chosen_fixer}` was Claude** — use a fresh Codex call for independent verification:
+- **Command persona**: "You are a verification auditor. Only check issues from the provided audit report."
+- **Sandbox**: `read-only`
 
-```
-mcp__codex__codex with:
-  model: {chosen_model}
-  config: {"model_reasoning_effort": "{chosen_effort}"}
-  sandbox: read-only
-  approval-policy: never
-  developer-instructions: "You are a verification auditor. Only check issues from the provided audit report."
-  prompt: "{same verification prompt as above}"
-```
-
-Update `{audit_threadId}` if a new thread was created.
-
-**Fallback**: If `codex-reply` fails, fall back to a fresh `codex` call (same as the Claude-fixer path).
-
-**Wait for Codex to complete.**
+**Fallback**: If `codex-reply` fails, use a fresh call (same as Claude-fixer path).
 
 #### 3d: Evaluate results
 
-Parse verification results:
-
-- **All FIXED** → proceed to Step 4 (success)
+- **All FIXED** → proceed to Step 4
 - **Some NOT FIXED / PARTIAL / REGRESSED** and `iteration < 3`:
-  - Increment `iteration`
-  - Show remaining issues to user
-  - Ask:
+  - Increment `iteration`, show remaining issues, ask:
     ```
     AskUserQuestion:
       question: "{remaining} issues remain after round {iteration-1}. Try fixing again?"
@@ -304,11 +212,10 @@ Parse verification results:
         - label: "Stop here"
           description: "Accept current state, fix remaining issues manually"
     ```
-  - If "Fix remaining" → go back to **3b** with only the remaining issues (same fixer)
-  - If "Switch fixer" → flip `{chosen_fixer}` (Claude→Codex or Codex→Claude), go back to **3b**
-  - If "Stop here" → proceed to Step 4
-
-- **iteration = 3** → proceed to Step 4 with whatever remains
+  - "Fix remaining" → go to **3b** with remaining issues (same fixer)
+  - "Switch fixer" → flip `{chosen_fixer}`, go to **3b**
+  - "Stop here" → proceed to Step 4
+- **iteration = 3** → proceed to Step 4
 
 ### Step 4: Final report
 
@@ -339,13 +246,13 @@ Parse verification results:
 
 | File:Line | Severity | Issue | Status |
 |-----------|----------|-------|--------|
-| {file:line} | {sev} | {issue} | FIXED |
+| ... | ... | ... | FIXED |
 
 ## Remaining Issues (if any)
 
 | File:Line | Severity | Issue | Status | Notes |
 |-----------|----------|-------|--------|-------|
-| {file:line} | {sev} | {issue} | NOT FIXED | {why} |
+| ... | ... | ... | NOT FIXED | {why} |
 
 ## Changes Made
 

@@ -66,8 +66,7 @@ If no config file exists, commands use sensible built-in defaults.
 | `/init` | Initialize project config — set default model, audit focus, skip patterns |
 | `/preflight` | Check Codex connectivity, auth status, and discover available models |
 | `/implement` | Delegate an implementation plan to Codex for autonomous execution |
-| `/audit` | Full 9-dimension code audit (security, correctness, performance, ...) |
-| `/audit-mini` | Fast 5-dimension audit for small changes |
+| `/audit` | Code audit — fast 5-dimension (`--mini`, default) or thorough 9-dimension (`--full`) |
 | `/verify` | Verify that issues from a previous audit have been fixed |
 | `/bug-analyze` | Root cause analysis for user-described bugs |
 | `/review-plan` | Architectural review of implementation plans |
@@ -95,8 +94,8 @@ The `/audit-fix` command runs the full cycle automatically:
 audit → fix → verify → (issues remain?) → fix → verify → ... → ACCEPTED
 ```
 
-1. Audits your code (mini or full)
-2. Sends findings to Codex to fix autonomously
+1. Audits your code (mini or full — your choice)
+2. Sends findings to Claude or Codex to fix (your choice)
 3. Verifies each fix was actually resolved
 4. Repeats up to 3 rounds or until clean
 5. Reports final status: ACCEPTED / PARTIAL / UNCHANGED
@@ -104,7 +103,8 @@ audit → fix → verify → (issues remain?) → fix → verify → ... → ACC
 You can also run each step manually:
 
 ```
-/audit-mini          # find issues
+/audit               # find issues (defaults to --mini)
+/audit --full        # thorough 9-dimension audit
 # fix them yourself
 /verify report.md    # check your fixes
 ```
