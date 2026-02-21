@@ -179,7 +179,7 @@ Display the generated config and suggest next steps:
 ### Next steps
 
 - **Edit** `.codex-toolkit.md` to fine-tune skip patterns and project instructions
-- **Run** `/audit` to test with your new settings
+- **Run** `/audit` or `/audit --full` to test with your new settings
 - **Commit** `.codex-toolkit.md` to share settings with your team
 - **Gitignore** it if you want personal settings only
 ```

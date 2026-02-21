@@ -33,27 +33,7 @@ Follow the instructions in `commands/shared/model-selection.md` to discover avai
 
 ### Step 1: Determine audit type and scope
 
-Parse `$ARGUMENTS` for `--full` or `--mini` flags (remove from scope arguments):
-
-| Condition | Audit type |
-|-----------|------------|
-| `--full` flag present | Full (9 dimensions) |
-| `--mini` flag present | Mini (5 dimensions) |
-| `{config_default_audit_type}` is set | Use config value |
-| Neither flag nor config | Ask the user (below) |
-
-If asking:
-
-```
-AskUserQuestion:
-  question: "Which audit depth?"
-  header: "Audit type"
-  options:
-    - label: "Mini (5 dimensions) (Recommended)"
-      description: "Logic, duplication, dead code, refactoring debt, shortcuts — fast"
-    - label: "Full (9 dimensions)"
-      description: "Adds security, performance, compliance, dependencies, documentation — thorough"
-```
+Follow the audit type selection logic in `commands/audit.md` Step 1 to parse `--full`/`--mini` flags from `$ARGUMENTS`, check `{config_default_audit_type}`, and ask the user if neither is set.
 
 Follow `commands/shared/scope-parse.md` for remaining argument parsing, skip pattern enforcement, and trivial scope check.
 

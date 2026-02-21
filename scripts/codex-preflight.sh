@@ -192,6 +192,9 @@ info "Probing ${#CANDIDATE_MODELS[@]} candidate models (timeout ${PROBE_TIMEOUT}
 # ── Step 4: Probe models in parallel ─────────────────────────────────────────
 
 TMPDIR_PROBE=$(mktemp -d)
+# kill 0 sends SIGTERM to this script's process group (all background probes).
+# Safe because this script is always invoked as a child process (bash scripts/...),
+# never sourced. The 2>/dev/null suppresses errors when no children remain.
 trap 'kill 0 2>/dev/null; rm -rf "$TMPDIR_PROBE"' EXIT
 
 TIMEOUT_CMD=$(resolve_timeout_cmd)
