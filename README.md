@@ -31,7 +31,7 @@ export OPENAI_API_KEY="your-key-here"
 First, add the marketplace (once):
 
 ```
-/plugin marketplace add xiaolai/codex-toolkit-for-claude
+/plugin marketplace add xiaolai/claude-plugin-marketplace
 ```
 
 Then install:
