@@ -57,6 +57,15 @@ Identify:
 
 Skip non-code files (*.md, *.json, *.yaml, *.css, images) unless specifically requested.
 
+For **mini audits**, also skip test files by default:
+- `*.test.*`, `*.spec.*`, `*_test.*`, `*_spec.*`
+- Files under `__tests__/`, `test/`, `tests/`, `spec/` directories
+- Test helpers/fixtures: `**/fixtures/**`, `**/mocks/**`, `**/stubs/**`
+
+This is because mini audits focus on production code quality; test files tend to have intentional duplication and simpler structure that would generate noise.
+
+For **full audits**, include test files — they are needed for Dimension 7 (Testing & Validation).
+
 ### Step 3: Audit Execution
 
 Follow `commands/shared/codex-call.md` for availability test and call pattern.
