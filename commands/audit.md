@@ -74,6 +74,8 @@ Follow `commands/shared/codex-call.md` for availability test and call pattern.
 - **Sandbox**: `read-only`
 - **Approval-policy**: `never`
 
+**Batching**: If scope contains more than 20 code files, batch them into groups of 10 and process each batch sequentially. Display progress between batches: "Auditing batch {N}/{total}..."
+
 For each code file, send the appropriate dimension prompt:
 
 #### Mini Audit (5 dimensions)
@@ -234,7 +236,29 @@ Report each issue as: file:line | severity(Critical/High/Medium/Low) | dimension
 |-----------|----------|-------|-----|
 | ... | ... | ... | ... |
 
-[Continue for all 9 dimensions]
+### Dimension 2: Security & Risk Management
+{findings table}
+
+### Dimension 3: Code Correctness & Reliability
+{findings table}
+
+### Dimension 4: Compliance & Standards
+{findings table}
+
+### Dimension 5: Maintainability & Readability
+{findings table}
+
+### Dimension 6: Performance & Efficiency
+{findings table}
+
+### Dimension 7: Testing & Validation
+{findings table}
+
+### Dimension 8: Dependency & Environment Safety
+{findings table}
+
+### Dimension 9: Documentation & Knowledge Transfer
+{findings table}
 
 ## Top Priority Actions
 

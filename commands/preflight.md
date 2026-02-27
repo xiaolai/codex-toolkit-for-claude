@@ -11,7 +11,7 @@ Run a preflight check to verify Codex is working and discover which models are a
 ### Step 1: Run the preflight script
 
 ```bash
-bash scripts/codex-preflight.sh
+bash "${CLAUDE_PLUGIN_ROOT}/scripts/codex-preflight.sh"
 ```
 
 Parse the JSON output from stdout. The script also prints a human-readable summary to stderr.

@@ -27,6 +27,8 @@ Determine the plan content from `$ARGUMENTS`:
 
 Read the plan content and display a brief summary to the user.
 
+**Large plans**: If the plan exceeds 200 lines, warn the user that very large plans may exceed Codex's context window and suggest breaking it into phases.
+
 ### Step 2: Let user choose model and settings
 
 Follow the instructions in `commands/shared/model-selection.md` to discover available models and present choices.
@@ -50,6 +52,8 @@ Follow `commands/shared/codex-call.md` for availability test and call pattern.
 - **Command persona**: "You are an autonomous implementation agent. Execute plans completely."
 - **Sandbox**: `{chosen_sandbox}`
 - **Approval-policy**: `never`
+
+> **Warning**: If the user selected `danger-full-access` sandbox, display a confirmation before proceeding: "You chose `danger-full-access` with `approval-policy: never` — Codex will have unrestricted read/write/execute access with no approval prompts. Continue?" Use `AskUserQuestion` with "Continue" and "Switch to workspace-write" options.
 
 ```
 prompt: "Execute the following plan completely from start to finish in the current working directory.
@@ -105,11 +109,11 @@ Ask the user what to do next:
 
 ### Fallback
 
-If Codex is unavailable (availability test fails), inform the user:
+If Codex is unavailable (availability test fails):
 
-```
-Codex is not available. To implement this plan:
-- Use Claude directly (I can implement it step by step)
-- Check Codex connectivity with /preflight
-- Try again later
-```
+1. Inform the user: "Codex is not available."
+2. Offer alternatives via `AskUserQuestion`:
+   - **"Implement with Claude (Recommended)"** — Claude reads the plan and executes each step directly using Read, Edit, Write, and Bash tools
+   - **"Check connectivity"** — Run `/preflight` to diagnose
+   - **"Cancel"** — Stop and try again later
+3. If "Implement with Claude": read the plan, break it into numbered steps, and execute each step sequentially — creating files, installing dependencies, running tests as specified. Report progress after each major step.

@@ -32,7 +32,7 @@ If `.codex-toolkit.md` does not exist, leave all variables empty and use the cal
 Run the preflight script to probe available models:
 
 ```bash
-bash scripts/codex-preflight.sh
+bash "${CLAUDE_PLUGIN_ROOT}/scripts/codex-preflight.sh"
 ```
 
 Parse the JSON output. The structure is:
@@ -63,7 +63,7 @@ Build the `AskUserQuestion` options **dynamically** from the preflight results. 
 
 **Question 1 — Model** (from `models` array):
 
-Build the option list from the available models. Use these descriptions when known:
+Build the option list from the available models. Use these descriptions when known (fall back to using the model name as-is for any model not listed here):
 
 | Model | Description |
 |-------|-------------|

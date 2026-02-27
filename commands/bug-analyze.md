@@ -51,7 +51,7 @@ Follow `commands/shared/codex-call.md` for availability test and call pattern.
 - **Sandbox**: `read-only`
 - **Approval-policy**: `never`
 
-For each relevant file:
+For each relevant file (files matching Grep results, files in the call chain, up to 10 files max):
 
 ```
 prompt: "Analyze {filename} for potential causes of this bug:

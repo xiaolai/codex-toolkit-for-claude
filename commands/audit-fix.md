@@ -29,6 +29,8 @@ Follow the instructions in `commands/shared/model-selection.md` to discover avai
 - **Recommended sandbox level**: `workspace-write`
 - **Include sandbox question**: Yes (fixes require write access)
 
+> **Warning**: If the user selects `danger-full-access` sandbox, display a confirmation before proceeding: "You chose `danger-full-access` with no approval prompts — Codex will have unrestricted access. Continue?" Use `AskUserQuestion` with "Continue" and "Switch to workspace-write" options.
+
 ## Workflow
 
 ### Step 1: Determine audit type and scope
@@ -119,7 +121,7 @@ Store as `{chosen_fixer}`.
    - Fix all related locations if needed
 2. Do NOT refactor surrounding code — only fix reported issues
 3. Do NOT delete code unless the issue calls for removal (dead code, unused imports)
-4. After fixing, run available tests if the project has them
+4. After fixing, run tests if a test runner is detected (check for `jest.config.*`, `vitest.config.*`, `pytest.ini`, `conftest.py`, `Cargo.toml` with `[dev-dependencies]`, `go.mod`, or a `test` script in `package.json`)
 5. Show summary: `git diff --stat` + list of fixes applied
 
 ##### If `{chosen_fixer}` is **Codex**:
