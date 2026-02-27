@@ -11,6 +11,7 @@ commands/           Slash command definitions (*.md with YAML frontmatter)
     codex-call.md       Shared partial — availability test, call pattern, thread handling (user-invocable: false)
     scope-parse.md      Shared partial — scope parsing, trivial check, skip patterns (user-invocable: false)
     fallback.md         Shared partial — manual fallback rules (user-invocable: false)
+    plugin-discover.md  Shared partial — plugin artifact discovery for plugin directories (user-invocable: false)
   preflight.md        /preflight — connectivity + model check
   implement.md        /implement — autonomous plan execution
   audit.md            /audit — code audit (--full 9-dim or --mini 5-dim)
@@ -18,6 +19,7 @@ commands/           Slash command definitions (*.md with YAML frontmatter)
   bug-analyze.md      /bug-analyze — root cause analysis
   review-plan.md      /review-plan — architectural plan review
   audit-fix.md        /audit-fix — audit→fix→verify loop
+  audit-plugin.md     /audit-plugin — plugin artifact audit (schema, spec, security, structure)
   continue.md         /continue — multi-turn follow-up via codex-reply
   init.md             /init — generate .codex-toolkit.md project config
 scripts/
@@ -49,6 +51,7 @@ Commands reference shared partials to eliminate boilerplate:
 - **codex-call.md** → availability test (ping), developer-instructions builder (persona + config focus + config project instructions), canonical call pattern, thread handling, sequential execution rule
 - **scope-parse.md** → unified scope parsing table, skip pattern enforcement against `{config_skip_patterns}`, trivial scope check with AskUserQuestion
 - **fallback.md** → universal "if Codex fails, do it manually" rules
+- **plugin-discover.md** → plugin root resolution, manifest validation, artifact discovery, cross-reference map, inventory summary
 
 Config enforcement chain: `model-selection.md` (extracts config variables) → `codex-call.md` (applies them to calls) → `scope-parse.md` (applies skip patterns to files).
 
