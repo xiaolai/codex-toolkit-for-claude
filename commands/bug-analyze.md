@@ -27,6 +27,8 @@ Extract from `$ARGUMENTS`:
 - **Context**: When/where does it occur?
 - **Keywords**: Key terms to search for
 
+If `$ARGUMENTS` is empty or too vague to extract actionable keywords, use AskUserQuestion to ask the user for a more specific bug description before proceeding.
+
 ### Step 2: Reconnaissance
 
 Identify scope using symptoms and keywords:

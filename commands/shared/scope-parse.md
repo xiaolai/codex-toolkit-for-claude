@@ -2,7 +2,7 @@
 user-invocable: false
 ---
 <!-- Shared partial: scope parsing, trivial check, skip pattern enforcement -->
-<!-- Referenced by: audit, audit-fix, bug-analyze. Do not use standalone. -->
+<!-- Referenced by: audit, audit-fix, bug-analyze (conditional). Do not use standalone. -->
 
 ## Scope Parsing
 

@@ -73,7 +73,7 @@ prompt: "Your ONLY job is to confirm fixes from a previous audit.
 
 3. **Quick Spot Check** (5 min max):
    - Only check files that were modified
-   - Look for obvious new problems introduced by fixes
+   - Look for syntax errors, broken imports, type errors, or runtime exceptions introduced by fixes
    - DO NOT run comprehensive scan
 
 ## Requirements

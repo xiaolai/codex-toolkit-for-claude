@@ -4,6 +4,8 @@ OpenAI Codex MCP integration for Claude Code.
 
 Use OpenAI's Codex models as an autonomous worker from within Claude Code — for code audits, implementation, verification, bug analysis, and plan review.
 
+Part of the [xiaolai plugin marketplace](https://github.com/xiaolai/claude-plugin-marketplace).
+
 ## Installation
 
 ### Prerequisites

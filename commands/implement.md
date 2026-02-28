@@ -63,7 +63,7 @@ IMPORTANT RULES:
 - Create all files, install all dependencies, write all code as specified.
 - Run tests/builds if the plan includes them.
 - If a step fails, debug and fix it before moving on.
-- After completing all steps, run a final verification (build, test, lint — whatever applies).
+- After completing all steps, run a final verification (build, test, lint). Run the project's test suite if detected (`npm test`, `cargo test`, `pytest`, `go test ./...`, etc.).
 - Report a summary of: files created, files modified, commands run, and any issues encountered.
 
 THE PLAN:
@@ -106,6 +106,7 @@ Ask the user what to do next:
 - Commit the changes
 - Run additional tests
 - Revert if something went wrong (`git checkout .`)
+  - **Warning**: `git checkout .` permanently discards ALL uncommitted changes. Consider `git stash` as a safer alternative.
 
 ### Fallback
 

@@ -10,7 +10,7 @@ user-invocable: false
 
 ### Steps
 
-1. **Read each relevant file** using the Read tool
+1. **Read each file in scope as determined by scope-parse.md** using the Read tool
 2. **Analyze** using the calling command's dimensions, criteria, or review framework
 3. **Use Grep** to search for common patterns relevant to the task (e.g. security markers, dead code indicators, TODO/FIXME/HACK)
 4. **Report findings** in the same structured format the calling command specifies
