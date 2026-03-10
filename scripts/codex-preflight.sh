@@ -26,11 +26,14 @@ PROBE_PROMPT="Respond with ok."
 # The dedup step keeps only the first available model per family.
 CANDIDATE_MODELS=(
   # gpt-codex family (newest first)
+  gpt-5.4-codex
   gpt-5.3-codex
   gpt-5.2-codex
   # gpt-codex-spark family
+  gpt-5.4-codex-spark
   gpt-5.3-codex-spark
   # gpt-codex-max family
+  gpt-5.4-codex-max
   gpt-5.1-codex-max
   # gpt-codex-mini family
   gpt-5-codex-mini
