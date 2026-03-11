@@ -67,10 +67,17 @@ Build the option list from the available models. Use these descriptions when kno
 
 | Model | Description |
 |-------|-------------|
-| `gpt-5.3-codex` | Flagship — most capable, best reasoning + coding |
+| `gpt-5.4` | Latest frontier — most capable agentic coding model |
+| `gpt-5.3-codex` | Previous flagship — strong reasoning + coding |
 | `gpt-5.3-codex-spark` | Ultra-low-latency real-time iteration (Pro only) |
 | `gpt-5.2-codex` | Previous gen — good balance of speed and cost |
+| `gpt-5.2` | GPT-5.2 base |
 | `gpt-5.1-codex-max` | Long-horizon, large codebases |
+| `gpt-5.1-codex` | GPT-5.1 Codex |
+| `gpt-5.1` | GPT-5.1 base |
+| `gpt-5-codex` | GPT-5 Codex |
+| `gpt-5` | GPT-5 base |
+| `gpt-5.1-codex-mini` | Mini variant — fast and cheap |
 | `gpt-5-codex-mini` | Fastest, cheapest |
 | `o4-mini` | Fast reasoning model |
 | `o3` | Strong reasoning model |

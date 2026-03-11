@@ -16,7 +16,7 @@ Sends a plan document to Codex running in an isolated context for independent re
 
 Follow the instructions in `commands/shared/model-selection.md` to discover available models and present choices.
 
-- **Recommended model**: `gpt-5.3-codex`
+- **Recommended model**: `gpt-5.4`
 - **Recommended reasoning effort**: `high`
 - **Include sandbox question**: No (plan review always uses `read-only`)
 
