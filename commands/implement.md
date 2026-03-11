@@ -33,7 +33,7 @@ Read the plan content and display a brief summary to the user.
 
 Follow the instructions in `commands/shared/model-selection.md` to discover available models and present choices.
 
-- **Recommended model**: `gpt-5.4`
+- **Recommended model**: first available from preflight
 - **Recommended reasoning effort**: `medium`
 - **Recommended sandbox level**: `workspace-write`
 - **Include sandbox question**: Yes

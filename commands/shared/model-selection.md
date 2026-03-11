@@ -40,11 +40,16 @@ Parse the JSON output. The structure is:
 ```json
 {
   "status": "ok",
-  "codex_version": "0.101.0",
+  "codex_version": "0.113.0",
   "auth_mode": "chatgpt_login",
   "codex_cloud": false,
-  "models": ["gpt-5.3-codex", "gpt-5.2-codex", ...],
-  "unavailable": ["gpt-5-codex-mini", ...],
+  "models": ["gpt-5.4", "gpt-5.3-codex", ...],
+  "models_detail": [
+    {"slug": "gpt-5.4", "description": "Latest frontier agentic coding model."},
+    {"slug": "gpt-5.3-codex", "description": "Frontier Codex-optimized agentic coding model."},
+    ...
+  ],
+  "unavailable": [],
   "reasoning_efforts": ["low", "medium", "high"],
   "sandbox_levels": ["read-only", "workspace-write", "danger-full-access"]
 }
@@ -61,36 +66,19 @@ Parse the JSON output. The structure is:
 
 Build the `AskUserQuestion` options **dynamically** from the preflight results. Ask all questions at once:
 
-**Question 1 — Model** (from `models` array):
+**Question 1 — Model** (from `models` and `models_detail` arrays):
 
-Build the option list from the available models. Use these descriptions when known (fall back to using the model name as-is for any model not listed here):
+Build the option list dynamically from the preflight results:
 
-| Model | Description |
-|-------|-------------|
-| `gpt-5.4` | Latest frontier — most capable agentic coding model |
-| `gpt-5.3-codex` | Previous flagship — strong reasoning + coding |
-| `gpt-5.3-codex-spark` | Ultra-low-latency real-time iteration (Pro only) |
-| `gpt-5.2-codex` | Previous gen — good balance of speed and cost |
-| `gpt-5.2` | GPT-5.2 base |
-| `gpt-5.1-codex-max` | Long-horizon, large codebases |
-| `gpt-5.1-codex` | GPT-5.1 Codex |
-| `gpt-5.1` | GPT-5.1 base |
-| `gpt-5-codex` | GPT-5 Codex |
-| `gpt-5` | GPT-5 base |
-| `gpt-5.1-codex-mini` | Mini variant — fast and cheap |
-| `gpt-5-codex-mini` | Fastest, cheapest |
-| `o4-mini` | Fast reasoning model |
-| `o3` | Strong reasoning model |
-| `codex-mini-latest` | Latest mini variant |
-| `gpt-4.1` | GPT-4.1 |
-| `gpt-4.1-mini` | GPT-4.1 Mini — lightweight |
-
-For any model not in this table, use the model name as the description.
+1. For each model in the `models` array, look up its `description` from the `models_detail` array (match by `slug`).
+2. If `models_detail` is empty or a model has no matching entry, use the model slug as the description.
+3. Present each model as an option with its description.
 
 **Determining the recommended model**:
 1. If `{config_default_model}` is set AND it's in the available list → use that
-2. Otherwise, use the calling command's recommended model (if available)
-3. If neither is available, mark the first available model as recommended
+2. Otherwise → use the **first model** in the `models` array (the preflight script returns models ordered newest-first, so the first entry is always the most capable)
+
+Do NOT hardcode any specific model name as "recommended" — always derive it from the preflight results or config.
 
 **Question 2 — Reasoning effort:**
 

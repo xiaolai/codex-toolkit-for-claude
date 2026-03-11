@@ -24,7 +24,7 @@ Continues until all issues are resolved or the user decides to stop.
 
 Follow the instructions in `commands/shared/model-selection.md` to discover available models and present choices.
 
-- **Recommended model**: `gpt-5.4`
+- **Recommended model**: first available from preflight
 - **Recommended reasoning effort**: `high`
 - **Recommended sandbox level**: `workspace-write`
 - **Include sandbox question**: Yes (fixes require write access)

@@ -13,7 +13,7 @@ $ARGUMENTS
 
 Follow the instructions in `commands/shared/model-selection.md` to discover available models and present choices.
 
-- **Recommended model**: `gpt-5.3-codex`
+- **Recommended model**: second available from preflight (verification needs less power)
 - **Recommended reasoning effort**: `medium`
 - **Include sandbox question**: No (verification always uses `read-only`)
 

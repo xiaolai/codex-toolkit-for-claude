@@ -174,31 +174,45 @@ else
 fi
 
 AVAILABLE=()
+# models_detail holds JSON array of {slug, description} objects (from cache path only)
+MODELS_DETAIL="[]"
 
 if $USE_CACHE; then
-  # Extract model slugs from the cache using python3 (always available on macOS/Linux)
-  # Falls back to jq, then to grep-based parsing
+  # Extract model metadata from the cache using python3 (always available on macOS/Linux)
   if command -v python3 &>/dev/null; then
-    while IFS= read -r slug; do
-      [[ -n "$slug" ]] && AVAILABLE+=("$slug")
-    done < <(python3 -c "
+    MODELS_DETAIL=$(python3 -c "
 import json, sys
 try:
     with open('$MODELS_CACHE') as f:
         data = json.load(f)
+    result = []
     for m in data.get('models', []):
         slug = m.get('slug', '')
         if slug:
-            print(slug)
+            result.append({
+                'slug': slug,
+                'description': m.get('description', slug),
+            })
+    print(json.dumps(result))
 except Exception:
+    print('[]')
     sys.exit(1)
-" 2>/dev/null)
-  elif command -v jq &>/dev/null; then
+" 2>/dev/null) || MODELS_DETAIL="[]"
+
+    # Also populate AVAILABLE array for backward compat and info output
     while IFS= read -r slug; do
       [[ -n "$slug" ]] && AVAILABLE+=("$slug")
-    done < <(jq -r '.models[].slug // empty' "$MODELS_CACHE" 2>/dev/null)
+    done < <(python3 -c "
+import json, sys
+for m in json.loads('''$MODELS_DETAIL'''):
+    print(m['slug'])
+" 2>/dev/null)
+  elif command -v jq &>/dev/null; then
+    MODELS_DETAIL=$(jq '[.models[] | {slug, description: (.description // .slug)}]' "$MODELS_CACHE" 2>/dev/null) || MODELS_DETAIL="[]"
+    while IFS= read -r slug; do
+      [[ -n "$slug" ]] && AVAILABLE+=("$slug")
+    done < <(echo "$MODELS_DETAIL" | jq -r '.[].slug' 2>/dev/null)
   else
-    # Fallback: simple grep extraction (less reliable but works without dependencies)
     while IFS= read -r slug; do
       [[ -n "$slug" ]] && AVAILABLE+=("$slug")
     done < <(grep -o '"slug"[[:space:]]*:[[:space:]]*"[^"]*"' "$MODELS_CACHE" 2>/dev/null \
@@ -208,6 +222,7 @@ except Exception:
   if [[ ${#AVAILABLE[@]} -eq 0 ]]; then
     info "Warning: models_cache.json parsed but no models found, falling back to probing"
     USE_CACHE=false
+    MODELS_DETAIL="[]"
   else
     info "Found ${#AVAILABLE[@]} models from cache"
     for model in "${AVAILABLE[@]}"; do
@@ -293,7 +308,7 @@ CODEX_VERSION_SAFE=$(json_escape "$CODEX_VERSION")
 AUTH_MODE_SAFE=$(json_escape "$AUTH_MODE")
 
 OUTPUT=$(cat <<JSON
-{"status":"ok","codex_version":"$CODEX_VERSION_SAFE","auth_mode":"$AUTH_MODE_SAFE","codex_cloud":$CODEX_CLOUD,"models":$available_json,"unavailable":$unavailable_json,"reasoning_efforts":$REASONING_EFFORTS,"sandbox_levels":$SANDBOX_LEVELS}
+{"status":"ok","codex_version":"$CODEX_VERSION_SAFE","auth_mode":"$AUTH_MODE_SAFE","codex_cloud":$CODEX_CLOUD,"models":$available_json,"models_detail":$MODELS_DETAIL,"unavailable":$unavailable_json,"reasoning_efforts":$REASONING_EFFORTS,"sandbox_levels":$SANDBOX_LEVELS}
 JSON
 )
 

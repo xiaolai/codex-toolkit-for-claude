@@ -13,7 +13,7 @@ $ARGUMENTS
 
 Follow the instructions in `commands/shared/model-selection.md` to discover available models and present choices.
 
-- **Recommended model**: `gpt-5.4` (full) / `gpt-5.3-codex` (mini)
+- **Recommended model**: first available from preflight (full) / second available (mini)
 - **Recommended reasoning effort**: `high` (full) / `medium` (mini)
 - **Include sandbox question**: No (audits always use `read-only`)
 
@@ -43,7 +43,7 @@ AskUserQuestion:
       description: "Adds security, performance, compliance, dependencies, documentation — thorough"
 ```
 
-Adjust recommended model/effort based on chosen type (full → `gpt-5.4`/`high`, mini → `gpt-5.3-codex`/`medium`).
+Adjust recommended model/effort based on chosen type (full → first available model/`high`, mini → second available model/`medium`).
 
 ### Step 2: Scope & Files
 
