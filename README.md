@@ -114,9 +114,7 @@ You can also run each step manually:
 
 ## Available models
 
-Models are discovered dynamically at runtime. Each command runs `scripts/codex-preflight.sh`, which probes a list of candidate models in parallel. Invalid models fail fast; valid ones are kept. When multiple versions of the same model family are available (e.g. `gpt-5.3-codex` and `gpt-5.2-codex`), only the newest is shown.
-
-The candidate list lives in `scripts/codex-preflight.sh` — add new model names there as OpenAI releases them. Stale entries are harmless; they simply probe as unavailable.
+Models are discovered dynamically at runtime from `~/.codex/models_cache.json` (maintained by the Codex CLI). Zero hardcoded model names — new models appear automatically after `codex login` refreshes the cache. If the cache is missing, the preflight script attempts `codex login --refresh` to create it.
 
 To check availability manually:
 

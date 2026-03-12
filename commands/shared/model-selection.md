@@ -40,13 +40,12 @@ Parse the JSON output. The structure is:
 ```json
 {
   "status": "ok",
-  "codex_version": "0.113.0",
-  "auth_mode": "chatgpt_login",
+  "codex_version": "...",
+  "auth_mode": "...",
   "codex_cloud": false,
-  "models": ["gpt-5.4", "gpt-5.3-codex", ...],
+  "models": ["<slug1>", "<slug2>", ...],
   "models_detail": [
-    {"slug": "gpt-5.4", "description": "Latest frontier agentic coding model."},
-    {"slug": "gpt-5.3-codex", "description": "Frontier Codex-optimized agentic coding model."},
+    {"slug": "<slug1>", "description": "<description>"},
     ...
   ],
   "unavailable": [],

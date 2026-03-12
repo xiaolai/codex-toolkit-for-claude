@@ -9,32 +9,17 @@
 #
 # How it works:
 #   Reads ~/.codex/models_cache.json (maintained by the codex CLI) to get the
-#   list of available models. No hardcoded model names — new models appear
+#   list of available models. Zero hardcoded model names — new models appear
 #   automatically after `codex login` refreshes the cache.
-#   Falls back to probing if models_cache.json is missing or stale.
+#   If cache is missing, attempts to refresh it via `codex login --refresh`.
 
 set -euo pipefail
 
 # ── Configuration ────────────────────────────────────────────────────────────
 
-PROBE_TIMEOUT=5          # seconds to wait before declaring "available" (fallback only)
 CLOUD_TIMEOUT=5          # seconds to wait for codex cloud list
 CACHE_TTL=300            # seconds (5 minutes) for our own preflight cache
-MODELS_CACHE_MAX_AGE=86400  # 24h — if models_cache.json is older, fall back to probing
-PROBE_PROMPT="Respond with ok."
-
-# Fallback candidate models — used ONLY when ~/.codex/models_cache.json is
-# missing or too stale. Keep this list as a safety net.
-FALLBACK_MODELS=(
-  gpt-5.4-codex
-  gpt-5.3-codex
-  gpt-5.3-codex-spark
-  gpt-5.1-codex-max
-  gpt-5-codex-mini
-  o4-mini
-  o3
-  codex-mini-latest
-)
+REFRESH_TIMEOUT=15       # seconds to wait for codex login --refresh
 
 # Static options (stable CLI flags — no need to probe).
 REASONING_EFFORTS='["low","medium","high"]'
@@ -162,15 +147,24 @@ MODELS_CACHE="$HOME/.codex/models_cache.json"
 USE_CACHE=false
 
 if [[ -f "$MODELS_CACHE" ]]; then
+  USE_CACHE=true
   cache_age=$(file_age_seconds "$MODELS_CACHE")
-  if [[ $cache_age -lt $MODELS_CACHE_MAX_AGE ]]; then
-    USE_CACHE=true
-    info "Reading models from ~/.codex/models_cache.json (${cache_age}s old)"
-  else
-    info "Models cache too stale (${cache_age}s > ${MODELS_CACHE_MAX_AGE}s), falling back to probing"
-  fi
+  info "Reading models from ~/.codex/models_cache.json (${cache_age}s old)"
 else
-  info "No models_cache.json found, falling back to probing"
+  # No cache — try to create it by triggering a codex login refresh
+  info "No models_cache.json found, attempting to refresh..."
+  TIMEOUT_CMD=$(resolve_timeout_cmd)
+  if [[ -n "$TIMEOUT_CMD" ]]; then
+    $TIMEOUT_CMD "$REFRESH_TIMEOUT" codex login --refresh &>/dev/null || true
+  else
+    codex login --refresh &>/dev/null || true
+  fi
+  if [[ -f "$MODELS_CACHE" ]]; then
+    USE_CACHE=true
+    info "Models cache refreshed successfully"
+  else
+    info "Could not create models cache"
+  fi
 fi
 
 AVAILABLE=()
@@ -220,7 +214,7 @@ for m in json.loads('''$MODELS_DETAIL'''):
   fi
 
   if [[ ${#AVAILABLE[@]} -eq 0 ]]; then
-    info "Warning: models_cache.json parsed but no models found, falling back to probing"
+    info "Warning: models_cache.json parsed but no models found"
     USE_CACHE=false
     MODELS_DETAIL="[]"
   else
@@ -231,60 +225,17 @@ for m in json.loads('''$MODELS_DETAIL'''):
   fi
 fi
 
-# ── Step 4b: Fallback — probe models in parallel (only if cache unavailable) ─
+# ── Step 4b: Handle missing cache ────────────────────────────────────────────
 
 UNAVAILABLE=()
 
 if ! $USE_CACHE; then
-  info "Probing ${#FALLBACK_MODELS[@]} fallback models (timeout ${PROBE_TIMEOUT}s each)..."
-
-  TMPDIR_PROBE=$(mktemp -d)
-  trap 'kill 0 2>/dev/null; rm -rf "$TMPDIR_PROBE"' EXIT
-
-  TIMEOUT_CMD=$(resolve_timeout_cmd)
-
-  probe_model() {
-    local model="$1"
-    local outfile="$TMPDIR_PROBE/$model"
-    local stderr_file="$TMPDIR_PROBE/${model}.stderr"
-
-    if [[ -n "$TIMEOUT_CMD" ]]; then
-      $TIMEOUT_CMD "$PROBE_TIMEOUT" \
-        codex exec -m "$model" "$PROBE_PROMPT" \
-        >"$outfile" 2>"$stderr_file" &
-    else
-      (
-        codex exec -m "$model" "$PROBE_PROMPT" \
-          >"$outfile" 2>"$stderr_file"
-      ) &
-      local pid=$!
-      (
-        sleep "$PROBE_TIMEOUT"
-        kill "$pid" 2>/dev/null
-      ) &
-      local killer=$!
-      wait "$pid" 2>/dev/null
-      kill "$killer" 2>/dev/null
-      wait "$killer" 2>/dev/null
-    fi
-  }
-
-  for model in "${FALLBACK_MODELS[@]}"; do
-    probe_model "$model" &
-  done
-
-  wait
-
-  for model in "${FALLBACK_MODELS[@]}"; do
-    stderr_file="$TMPDIR_PROBE/${model}.stderr"
-    if [[ -f "$stderr_file" ]] && grep -qi "not supported" "$stderr_file" 2>/dev/null; then
-      UNAVAILABLE+=("$model")
-      info "  $model  -->  unavailable"
-    else
-      AVAILABLE+=("$model")
-      info "  $model  -->  available"
-    fi
-  done
+  CODEX_VERSION_SAFE=$(json_escape "$CODEX_VERSION")
+  AUTH_MODE_SAFE=$(json_escape "$AUTH_MODE")
+  cat <<JSON
+{"status":"error","error":"No models cache found. Run 'codex login' to populate ~/.codex/models_cache.json","codex_version":"$CODEX_VERSION_SAFE","auth_mode":"$AUTH_MODE_SAFE","models":[],"models_detail":[],"reasoning_efforts":$REASONING_EFFORTS,"sandbox_levels":$SANDBOX_LEVELS}
+JSON
+  exit 1
 fi
 
 # ── Step 5: Check Codex Cloud availability ───────────────────────────────────
