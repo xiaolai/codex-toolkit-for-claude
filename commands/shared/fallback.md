@@ -2,7 +2,7 @@
 user-invocable: false
 ---
 <!-- Shared partial: fallback rules when Codex returns empty or fails -->
-<!-- Referenced by: audit, verify, bug-analyze, review-plan. Do not use standalone. -->
+<!-- Referenced by: audit, audit-fix, verify, bug-analyze, review-plan, audit-skill, audit-command, audit-rules. Do not use standalone. -->
 
 ## Fallback — Manual Analysis
 

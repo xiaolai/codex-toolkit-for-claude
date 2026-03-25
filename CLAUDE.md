@@ -70,7 +70,7 @@ Priority: user choice > project config > command defaults.
 
 ### Command structure
 
-All commands follow this pattern:
+Most commands follow this pattern:
 1. Load `.codex-toolkit.md` project config if it exists (via model-selection.md Step 0)
 2. Run `scripts/codex-preflight.sh` via model-selection.md to discover models
 3. Present choices via `AskUserQuestion` (model, effort, optionally sandbox)
@@ -78,6 +78,8 @@ All commands follow this pattern:
 5. Send the real task to Codex via `mcp__codex__codex` (via codex-call.md)
 6. If Codex fails or returns empty, fall back to manual analysis (via fallback.md)
 7. Display structured report with threadId
+
+Exceptions: `preflight.md` (IS the preflight step, no model selection), `audit-plugin.md` (does direct analysis without Codex — plugin artifacts are small enough and Codex can't read local files in read-only sandbox).
 
 ### Adding new commands
 

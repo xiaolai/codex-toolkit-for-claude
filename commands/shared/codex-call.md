@@ -2,7 +2,7 @@
 user-invocable: false
 ---
 <!-- Shared partial: Codex call pattern (availability test, developer-instructions builder, call, thread handling) -->
-<!-- Referenced by: audit, audit-fix, verify, bug-analyze, review-plan, implement. Do not use standalone. -->
+<!-- Referenced by: audit, audit-fix, verify, bug-analyze, review-plan, implement, audit-skill, audit-command, audit-rules. Do not use standalone. -->
 
 ## Codex Call Pattern
 

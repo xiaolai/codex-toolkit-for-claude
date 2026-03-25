@@ -32,6 +32,8 @@ Extract the `threadId` and follow-up prompt from `$ARGUMENTS`:
 | `<threadId>` (no prompt) | Ask the user for the follow-up prompt |
 | (empty) | Ask the user for both threadId and prompt |
 
+**ThreadId detection heuristic**: Thread IDs are UUID-format strings (e.g., `019d10e8-5bf9-77e2-b518-f5256fa06b2c`) or short alphanumeric tokens. The first token in `$ARGUMENTS` is a threadId if it matches a UUID pattern (`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`) or is a single alphanumeric string with no spaces. Otherwise, treat the entire input as a prompt and ask for the threadId.
+
 If `$ARGUMENTS` is empty or missing the threadId:
 
 ```

@@ -43,7 +43,7 @@ AskUserQuestion:
       description: "Adds security, performance, compliance, dependencies, documentation — thorough"
 ```
 
-Adjust recommended model/effort based on chosen type (full → first available model/`high`, mini → second available model/`medium`).
+Adjust recommended model/effort based on chosen type (full → first available model/`high`, mini → second available model/`medium`). If only one model is available, use it for both audit types.
 
 ### Step 2: Scope & Files
 

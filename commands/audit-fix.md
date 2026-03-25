@@ -195,7 +195,7 @@ For each issue report:
           description: "Accept current state, fix remaining issues manually"
     ```
   - "Fix remaining" → go to **3b** with remaining issues (same fixer)
-  - "Switch fixer" → flip `{chosen_fixer}`, go to **3b**
+  - "Switch fixer" → flip `{chosen_fixer}`, go to **3b**. If switching TO Codex and sandbox is `danger-full-access`, re-confirm with the user before proceeding (same warning as initial sandbox confirmation).
   - "Stop here" → proceed to Step 4
 - **iteration = 3** → proceed to Step 4
 
