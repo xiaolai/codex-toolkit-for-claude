@@ -1,46 +1,56 @@
 ---
 name: claude-code-conventions
 description: "Canonical reference for Claude Code plugin artifact schemas, hook events, frontmatter fields, and naming conventions. Used to inject domain knowledge into Codex audit prompts. Run /codex-toolkit:refresh-knowledge to update from latest docs."
-version: 0.1.0
+version: 0.2.0
 ---
 
 # Claude Code Plugin Conventions Reference
 
 > **Purpose**: This skill is the single source of truth for Claude Code artifact conventions. Audit commands inject this content into Codex's `developer-instructions` so Codex can accurately validate Claude Code artifacts despite having no native knowledge of the platform.
 >
-> **Freshness**: Last updated 2026-03-25. Run `/codex-toolkit:refresh-knowledge` to refresh from official docs.
+> **Freshness**: Last updated 2026-03-25 from context7 (`/websites/code_claude_en_plugins-reference`, `/websites/code_claude_en_plugins`). Run `/codex-toolkit:refresh-knowledge` to refresh.
 
 ## plugin.json Schema
 
-Required fields:
-- `name` (string): plugin identifier, kebab-case
-- `version` (string): semver format `X.Y.Z`
-- `description` (string): one-line purpose
+**Only `name` is strictly required.** Version and description are strongly recommended but optional.
 
-Optional fields:
-- `author` (object): `{ "name": "string", "email": "string" }`
-- `license` (string): SPDX identifier
+Required:
+- `name` (string): plugin identifier, kebab-case. Used for namespacing (e.g., `plugin-dev:agent-creator`)
+
+Recommended:
+- `version` (string): semver `X.Y.Z`. If also set in marketplace entry, plugin.json takes precedence
+- `description` (string): brief purpose
+
+Optional metadata:
+- `author` (object): `{ "name": "string", "email": "string", "url": "string" }`
+- `homepage` (string): URL to plugin docs
+- `repository` (string): URL to source code
+- `license` (string): SPDX identifier (e.g., `"MIT"`, `"Apache-2.0"`)
 - `keywords` (string[]): discovery tags
-- `commands` (object): explicit command registration (auto-discovered if omitted)
-- `agents` (object): explicit agent registration (auto-discovered if omitted)
-- `skills` (object): explicit skill registration (auto-discovered if omitted)
-- `hooks` (object): hook configuration
-- `mcpServers` (object): MCP server registration
-- `lspServers` (object): LSP server registration
-- `outputStyles` (object): custom output formatting
+
+Component path fields (string, string[], or inline object):
+- `commands` — path(s) to command files. Default: `./commands/` (auto-discovered)
+- `agents` — path(s) to agent files. Default: `./agents/` (auto-discovered)
+- `skills` — path(s) to skill directories. Default: `./skills/` (auto-discovered)
+- `hooks` — path to hooks config OR inline hooks object. Default: `./hooks/hooks.json`
+- `mcpServers` — path to MCP config OR inline object. Default: `./.mcp.json`
+- `lspServers` — path to LSP config. Default: `./.lsp.json`
+- `outputStyles` — path to output style definitions
+
+If omitted, components are auto-discovered from default locations.
 
 ## Command Frontmatter
 
-Location: `commands/<name>.md` (auto-discovered)
+Location: `commands/<name>.md` (auto-discovered from `commands/` directory)
 
 Required fields:
 - `description` (string): shown in `/help`, must be specific and actionable
 
 Optional fields:
-- `argument-hint` (string): usage pattern shown to user (e.g., `"<file> [--flag]"`)
-- `allowed-tools` (string[]): restrict available tools. If omitted, all tools available
+- `argument-hint` (string): usage pattern (e.g., `"<file> [--flag]"`)
+- `allowed-tools` (string[]): restrict available tools. Omit for all tools
 - `model` (string): override session model (`haiku`, `sonnet`, `opus`)
-- `user-invocable` (boolean): set to `false` for shared partials in `commands/shared/`
+- `user-invocable` (boolean): `false` for shared partials in `commands/shared/`
 
 Body: imperative instructions FOR Claude, not documentation TO user.
 
@@ -51,48 +61,57 @@ Location: `commands/shared/<name>.md`
 Required:
 - `user-invocable: false`
 
-These are referenced by commands to eliminate boilerplate. Not shown in `/help`.
+Referenced by commands to eliminate boilerplate. Not shown in `/help`.
 
 ## Agent Frontmatter
 
 Location: `agents/<name>.md` (auto-discovered)
 
-Required fields:
-- `description` (string): MUST include `<example>` blocks showing when to trigger
+Official documented fields:
+- `name` (string): agent identifier
+- `description` (string): what the agent does and when to invoke it
 
-Recommended fields:
+Widely-used convention fields (not in official docs but used by all xiaolai plugins and many community plugins):
 - `model` (string): `haiku`, `sonnet`, `opus`
-- `color` (string): `cyan`, `blue`, `magenta`, `yellow`, `green`, `red`
-- `tools` (string[] or comma-separated string): tools available to the agent
-- `skills` (string[]): skills loaded into agent context, format `plugin-name:skill-name`
+- `color` (string): UI color hint — `cyan`, `blue`, `magenta`, `yellow`, `green`, `red`
+- `tools` (string[] or comma-separated): tools available to the agent
+- `skills` (string[]): skills loaded into context, format `plugin-name:skill-name`
+- `allowed-tools` (string[]): alternative to `tools`
 
-Body: system prompt defining the agent's mission, instructions, and output format.
+Agents can also embed inline hooks in frontmatter for `PreToolUse`/`PostToolUse` within their scope.
+
+Body: system prompt defining mission, instructions, and output format. Best practice: include `<example>` blocks in description showing when/how to trigger.
 
 ## Skill Structure
 
-Location: `skills/<plugin-name>/<skill-name>/SKILL.md`
+Location: `skills/<skill-name>/SKILL.md` (or `skills/<plugin-name>/<skill-name>/SKILL.md`)
 
 Required frontmatter:
 - `name` (string): skill identifier
-- `description` (string): when/why to use this skill — acts as trigger for auto-loading
+- `description` (string): when/why to use — acts as trigger for auto-loading
 
 Optional frontmatter:
 - `version` (string): semver
 - `globs` (string or string[]): file patterns that scope this skill
 
-Body: reference material in imperative form. Keep under 500 lines for context efficiency.
+Body: reference material. Keep under 500 lines for context efficiency.
 
-Supporting files: `references/`, `examples/`, `scripts/` subdirectories (optional).
+Supporting files alongside SKILL.md:
+- `references/` — detailed reference material
+- `examples/` — working code examples
+- `scripts/` — utility scripts
+
+Skills in `commands/` directory work identically (legacy layout). Both are auto-discovered.
 
 ## Hook Events
 
-Location: `hooks/hooks.json` or inline in agent frontmatter
+Location: `hooks/hooks.json` (can have multiple files: `hooks.json`, `security-hooks.json`, etc.), inline in `plugin.json` hooks field, or inline in agent frontmatter.
 
 Valid event types:
-- `PreToolUse` — before a tool executes (can block)
-- `PostToolUse` — after a tool executes
-- `PostToolUseFailure` — after a tool fails
-- `PermissionRequest` — when permission is needed
+- `PreToolUse` — before a tool executes (can block via permission decision)
+- `PostToolUse` — after a tool executes successfully
+- `PostToolUseFailure` — after a tool execution fails
+- `PermissionRequest` — when tool permission is needed
 - `UserPromptSubmit` — when user sends a message
 - `Stop` — when Claude stops responding
 - `SubagentStop` — when a subagent completes
@@ -102,12 +121,14 @@ Valid event types:
 - `Notification` — for notifications
 - `InstructionsLoaded` — after CLAUDE.md files are loaded
 
+**Note**: Event names are case-sensitive.
+
 Hook types:
 - `command` — run a shell command, receives JSON on stdin
-- `prompt` — inject a prompt into Claude's context
-- `agent` — spawn a verification agent
+- `prompt` — evaluate a prompt with the LLM
+- `agent` — spawn an agentic verifier for complex verification tasks
 
-Hook output (for `command` type):
+Hook output (for `command` type blocking decisions):
 ```json
 {
   "hookSpecificOutput": {
@@ -117,20 +138,20 @@ Hook output (for `command` type):
 }
 ```
 
-Matcher: regex pattern for tool name (e.g., `"Bash"`, `"mcp__.*"`)
+Matcher: regex pattern for tool name (e.g., `"Bash"`, `"Write|Edit"`, `"mcp__.*"`)
 
 ## hooks.json Format
 
 ```json
 {
   "hooks": {
-    "PreToolUse": [
+    "PostToolUse": [
       {
-        "matcher": "Bash",
+        "matcher": "Write|Edit",
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/guard.js"
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/format-code.sh"
           }
         ]
       }
@@ -138,6 +159,8 @@ Matcher: regex pattern for tool name (e.g., `"Bash"`, `"mcp__.*"`)
   }
 }
 ```
+
+Multiple hook config files are supported in the `hooks/` directory.
 
 ## .mcp.json Format
 
@@ -175,6 +198,8 @@ Per-plugin marketplace (for `claude plugin marketplace add`):
 }
 ```
 
+`owner` with `name` is required for marketplace validation.
+
 Source types: `github`, `git`, `url`, `npm`, `file`, `directory`, `hostPattern`
 
 ## Plugin Directory Layout
@@ -182,7 +207,7 @@ Source types: `github`, `git`, `url`, `npm`, `file`, `directory`, `hostPattern`
 ```
 plugin-name/
 ├── .claude-plugin/
-│   ├── plugin.json           # required
+│   ├── plugin.json           # manifest (name required, rest optional)
 │   └── marketplace.json      # optional
 ├── commands/                  # auto-discovered
 │   ├── command-name.md
@@ -191,30 +216,36 @@ plugin-name/
 ├── agents/                    # auto-discovered
 │   └── agent-name.md
 ├── skills/                    # auto-discovered
-│   └── plugin-name/
-│       └── skill-name/
-│           └── SKILL.md
-├── hooks/
-│   └── hooks.json
+│   └── skill-name/
+│       ├── SKILL.md
+│       ├── references/        # optional
+│       ├── examples/          # optional
+│       └── scripts/           # optional
+├── hooks/                     # can have multiple .json files
+│   ├── hooks.json
+│   └── security-hooks.json   # additional hook configs
 ├── scripts/                   # utility scripts
+├── settings.json              # default plugin settings (optional)
 ├── .mcp.json                  # optional MCP servers
+├── .lsp.json                  # optional LSP servers
 ├── CLAUDE.md                  # project instructions
 ├── README.md
 └── LICENSE
 ```
 
-`${CLAUDE_PLUGIN_ROOT}` resolves to the plugin's root directory at runtime.
+`${CLAUDE_PLUGIN_ROOT}` resolves to the plugin's root directory at runtime. Use it in all script paths for portability.
 
 ## Naming Conventions
 
 - Plugin names: kebab-case (`reading-assistant`, `codex-toolkit`)
 - Command files: kebab-case `.md` (`audit-plugin.md`)
 - Agent files: kebab-case `.md` (`qc-coordinator.md`)
-- Skill directories: `plugin-name/skill-name/`
+- Skill directories: `skill-name/SKILL.md` or `plugin-name/skill-name/SKILL.md`
 - Script files: kebab-case with extension (`codex-preflight.sh`, `parse_epub.py`)
 
-## Settings Files
+## Settings
 
+- `settings.json` at plugin root — default settings shipped with the plugin
 - `~/.claude/settings.json` — global user settings
 - `{project}/.claude/settings.json` — project settings (committed)
 - `{project}/.claude/settings.local.json` — local settings (gitignored)
@@ -226,31 +257,32 @@ plugin-name/
 - Supports `@` import syntax to reference other files
 - Loaded from: project root, `.claude/`, `~/.claude/`, parent directories
 - Priority: closer to project root wins
+- `claudeMdExcludes` setting can ignore specific CLAUDE.md files
 
-## Quality Standards for Artifacts
+## Quality Standards
 
 ### Commands
-- Description must be specific and actionable (not "does stuff")
-- Steps must be numbered and unambiguous
-- Tool requirements must match `allowed-tools`
-- Output format must be defined
-- Error paths must be specified
+- Description: specific and actionable
+- Steps: numbered, unambiguous, all paths covered
+- Tools: match `allowed-tools`, least-privilege
+- Output: format defined (report template)
+- Errors: fallback paths specified
 
 ### Agents
-- Description MUST include `<example>` blocks
-- Model should match task complexity (haiku for mechanical, sonnet for reasoning, opus for judgment)
-- Tools should follow least-privilege
-- System prompt should define mission, instructions, and output format
+- Description: include `<example>` blocks for triggering
+- Model: match task complexity (haiku mechanical, sonnet reasoning, opus judgment)
+- Tools: least-privilege
+- Body: mission, instructions, output format
 
 ### Skills
-- Description acts as trigger — must contain specific phrases that match user queries
-- Body should be under 500 lines
-- Content should teach patterns, not theory
-- Code examples should be runnable, not pseudocode
+- Description: trigger phrases matching user queries
+- Body: under 500 lines, patterns over theory
+- Code examples: runnable, not pseudocode
+- Scope: clear boundaries, cross-references to related skills
 
 ### Rules (.claude/rules/)
-- YAML frontmatter with `description` (required) and `paths` (optional)
-- Total budget: <500 lines across all rule files
-- Each rule: bold imperative + rationale + positive framing
-- Must be enforceable (testable, specific, observable)
-- Must not duplicate linter/formatter/CI enforcement
+- YAML frontmatter: `description` (required), `paths` (optional glob array)
+- Budget: <500 lines total across all rule files
+- Format: bold imperative + rationale + positive framing
+- Enforceable: testable, specific, observable
+- No duplication of linter/formatter/CI enforcement
