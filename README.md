@@ -74,6 +74,9 @@ If no config file exists, commands use sensible built-in defaults.
 | `/review-plan` | Architectural review of implementation plans |
 | `/audit-fix` | Full audit→fix→verify loop — runs until all issues are resolved or you stop |
 | `/audit-plugin` | Audit a Claude Code plugin for schema, specification, security, and structural defects |
+| `/audit-skill` | Audit SKILL.md files for trigger quality, content structure, and context efficiency |
+| `/audit-command` | Audit slash command files for workflow clarity, tool selection, and error handling |
+| `/audit-rules` | Audit .claude/rules/ for enforceability, token budget, and conflict detection |
 | `/continue` | Continue a previous Codex session — iterate on findings or request fixes |
 
 > When installed as a plugin, commands appear as `/codex-toolkit:<command>` (e.g. `/codex-toolkit:audit`).

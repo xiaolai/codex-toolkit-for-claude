@@ -20,6 +20,9 @@ commands/           Slash command definitions (*.md with YAML frontmatter)
   review-plan.md      /review-plan — architectural plan review
   audit-fix.md        /audit-fix — audit→fix→verify loop
   audit-plugin.md     /audit-plugin — plugin artifact audit (schema, spec, security, structure)
+  audit-skill.md      /audit-skill — skill SKILL.md audit (triggers, content, context efficiency)
+  audit-command.md    /audit-command — command .md audit (workflow, tools, error handling)
+  audit-rules.md      /audit-rules — .claude/rules/ audit (enforceability, budget, conflicts)
   continue.md         /continue — multi-turn follow-up via codex-reply
   init.md             /init — generate .codex-toolkit.md project config
 scripts/
