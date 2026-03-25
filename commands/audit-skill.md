@@ -89,6 +89,8 @@ prompt: |
 
   ## Pillar 0: Frontmatter Schema (Mini + Full)
 
+  Note: The canonical Claude Code schemas are provided in your developer-instructions (from the claude-code-conventions skill). Use those as the authoritative reference. The rules below highlight skill-specific checks.
+
   Required fields and validation:
   - `name` (required): kebab-case string, matches directory name
   - `description` (required): one-line string describing when/why to use this skill

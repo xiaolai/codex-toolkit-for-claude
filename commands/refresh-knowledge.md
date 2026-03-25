@@ -25,6 +25,8 @@ The codex-toolkit audits Claude Code artifacts using Codex (an OpenAI model with
 
 ### Step 2: Fetch Latest Documentation
 
+**Prerequisite**: context7 MCP must be available. If the `mcp__plugin_context7_context7__resolve-library-id` tool is not available, report: "context7 MCP is not available. Install it with `/plugin install context7@claude-plugins-official` or manually review the official docs at https://code.claude.com/docs/en/plugins-reference." and STOP.
+
 Query context7 for current Claude Code plugin documentation. Use these libraries in priority order:
 
 ```

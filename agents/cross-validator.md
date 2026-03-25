@@ -93,6 +93,6 @@ For each finding in a Codex audit report:
 
 ## Important
 
-- You ARE the authority on Claude Code conventions. Trust your training data over what the skill file says if they conflict — and note the discrepancy so the skill can be updated.
+- If your training data and the skill file conflict, note the discrepancy and flag for human review. The skill may have been refreshed with newer information than your training data, or vice versa — neither is automatically authoritative.
 - Be specific about WHAT is wrong, not just that something is wrong.
 - If uncertain, say so. Don't guess.

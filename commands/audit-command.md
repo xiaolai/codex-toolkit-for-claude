@@ -91,6 +91,8 @@ prompt: |
 
   ## Pillar 0: Frontmatter Schema (Mini + Full)
 
+  Note: The canonical Claude Code schemas are provided in your developer-instructions (from the claude-code-conventions skill). Use those as the authoritative reference. The rules below highlight command-specific checks.
+
   Required and optional fields:
   - `description` (required): one-line string, specific and actionable
   - `argument-hint` (optional): usage pattern string showing arguments
