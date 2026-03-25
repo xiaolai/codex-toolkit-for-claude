@@ -24,10 +24,11 @@ If Codex does not respond or errors out, skip to the calling command's **Fallbac
 Concatenate these parts into a single `developer-instructions` string:
 
 1. **Command persona** — the role-specific persona from the calling command (e.g. "You are a thorough security and code quality auditor.")
-2. **Config focus instructions** — `{config_focus_instructions}` from `.codex-toolkit.md` Audit Focus section (if present)
-3. **Config project instructions** — `{config_project_instructions}` from `.codex-toolkit.md` Project-Specific Instructions section (if present)
+2. **Claude Code conventions** — for audit commands that analyze Claude Code artifacts (audit-plugin, audit-skill, audit-command, audit-rules), read the content of `${CLAUDE_PLUGIN_ROOT}/skills/codex-toolkit/claude-code-conventions/SKILL.md` and append it. This gives Codex the domain knowledge it lacks natively. For non-plugin-audit commands (audit, verify, implement, etc.), skip this step.
+3. **Config focus instructions** — `{config_focus_instructions}` from `.codex-toolkit.md` Audit Focus section (if present)
+4. **Config project instructions** — `{config_project_instructions}` from `.codex-toolkit.md` Project-Specific Instructions section (if present)
 
-If parts 2 or 3 are empty, omit them. Separate non-empty parts with a single space.
+If parts 2, 3, or 4 are empty, omit them. Separate non-empty parts with a single space.
 
 ### Canonical mcp__codex__codex call
 

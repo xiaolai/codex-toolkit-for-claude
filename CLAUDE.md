@@ -23,8 +23,15 @@ commands/           Slash command definitions (*.md with YAML frontmatter)
   audit-skill.md      /audit-skill — skill SKILL.md audit (triggers, content, context efficiency)
   audit-command.md    /audit-command — command .md audit (workflow, tools, error handling)
   audit-rules.md      /audit-rules — .claude/rules/ audit (enforceability, budget, conflicts)
+  refresh-knowledge.md /refresh-knowledge — fetch latest Claude Code docs, update convention skill
   continue.md         /continue — multi-turn follow-up via codex-reply
   init.md             /init — generate .codex-toolkit.md project config
+agents/
+  cross-validator.md  Cross-validate Codex audit findings against Claude's native knowledge
+skills/
+  codex-toolkit/
+    claude-code-conventions/
+      SKILL.md        Canonical Claude Code artifact schemas, injected into Codex developer-instructions
 scripts/
   codex-preflight.sh    Model discovery script (probes candidates in parallel)
 .mcp.json               Registers Codex MCP server
@@ -80,6 +87,18 @@ Most commands follow this pattern:
 7. Display structured report with threadId
 
 Exceptions: `preflight.md` (IS the preflight step, no model selection), `audit-plugin.md` (does direct analysis without Codex — plugin artifacts are small enough and Codex can't read local files in read-only sandbox).
+
+### Cross-provider knowledge architecture
+
+Codex (OpenAI) has no native knowledge of Claude Code conventions. The plugin solves this with three layers:
+
+1. **Skill as knowledge base**: `skills/codex-toolkit/claude-code-conventions/SKILL.md` is the single source of truth for Claude Code schemas, events, and conventions. The `codex-call.md` partial injects this content into Codex's `developer-instructions` for plugin-audit commands.
+
+2. **Knowledge refresh**: `/refresh-knowledge` fetches latest Claude Code docs via context7 MCP and compares against the skill. `--check` for drift report, `--update` to apply changes.
+
+3. **Cross-validation**: The `cross-validator` agent uses Claude's native Claude Code knowledge to verify Codex's audit findings. Dispatched after audit commands to catch false positives and hallucinated conventions.
+
+**Flow**: refresh-knowledge updates skill → codex-call injects skill into Codex → Codex audits → cross-validator verifies.
 
 ### Adding new commands
 

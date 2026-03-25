@@ -77,9 +77,18 @@ If no config file exists, commands use sensible built-in defaults.
 | `/audit-skill` | Audit SKILL.md files for trigger quality, content structure, and context efficiency |
 | `/audit-command` | Audit slash command files for workflow clarity, tool selection, and error handling |
 | `/audit-rules` | Audit .claude/rules/ for enforceability, token budget, and conflict detection |
+| `/refresh-knowledge` | Fetch latest Claude Code docs via context7, update convention knowledge |
 | `/continue` | Continue a previous Codex session — iterate on findings or request fixes |
 
 > When installed as a plugin, commands appear as `/codex-toolkit:<command>` (e.g. `/codex-toolkit:audit`).
+
+## Cross-provider knowledge architecture
+
+Codex has no native knowledge of Claude Code conventions. The plugin solves this with three layers:
+
+1. **Knowledge skill** — `claude-code-conventions` SKILL.md is the single source of truth for Claude Code schemas. Injected into Codex's `developer-instructions` for plugin-audit commands.
+2. **Knowledge refresh** — `/refresh-knowledge` fetches latest docs via context7 MCP, detects drift, and updates the skill.
+3. **Cross-validation** — `cross-validator` agent uses Claude's native knowledge to verify Codex's findings, catching false positives and hallucinated conventions.
 
 ## How it works
 
