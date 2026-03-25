@@ -77,6 +77,7 @@ If no config file exists, commands use sensible built-in defaults.
 | `/audit-skill` | Audit SKILL.md files for trigger quality, content structure, and context efficiency |
 | `/audit-command` | Audit slash command files for workflow clarity, tool selection, and error handling |
 | `/audit-rules` | Audit .claude/rules/ for enforceability, token budget, and conflict detection |
+| `/audit-repo` | Audit a repo's document corpus for consistency, completeness, and coherence |
 | `/refresh-knowledge` | Fetch latest Claude Code docs via context7, update convention knowledge |
 | `/continue` | Continue a previous Codex session — iterate on findings or request fixes |
 
