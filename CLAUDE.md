@@ -24,7 +24,7 @@ commands/           Slash command definitions (*.md with YAML frontmatter)
   audit-command.md    /audit-command — command .md audit (workflow, tools, error handling)
   audit-rules.md      /audit-rules — .claude/rules/ audit (enforceability, budget, conflicts)
   audit-agent.md      /audit-agent — agent .md audit (triggering, system prompt, tools, safety)
-  audit-repo.md       /audit-repo — repo-wide NL programming audit (prompts, agents, skills, rules, specs)
+  audit-nlp.md        /audit-nlp — repo-wide NL programming audit (prompts, agents, skills, rules, specs)
   refresh-knowledge.md /refresh-knowledge — fetch latest Claude Code docs, update convention skill
   continue.md         /continue — multi-turn follow-up via codex-reply
   init.md             /init — generate .codex-toolkit.md project config

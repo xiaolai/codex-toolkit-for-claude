@@ -78,7 +78,7 @@ If no config file exists, commands use sensible built-in defaults.
 | `/audit-command` | Audit slash command files for workflow clarity, tool selection, and error handling |
 | `/audit-rules` | Audit .claude/rules/ for enforceability, token budget, and conflict detection |
 | `/audit-agent` | Audit agent definitions for triggering accuracy, system prompt quality, and safety |
-| `/audit-repo` | Audit ALL NL programming artifacts in a repo (prompts, agents, skills, commands, rules, specs) |
+| `/audit-nlp` | Audit ALL NL programming artifacts in a repo (prompts, agents, skills, commands, rules, specs) |
 | `/refresh-knowledge` | Fetch latest Claude Code docs via context7, update convention knowledge |
 | `/continue` | Continue a previous Codex session — iterate on findings or request fixes |
 
