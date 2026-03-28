@@ -1,4 +1,5 @@
 ---
+description: "Shared: load project config, run preflight discovery, present model/effort/sandbox choices"
 user-invocable: false
 ---
 <!-- Shared partial: dynamic model selection via codex-preflight -->

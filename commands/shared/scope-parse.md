@@ -1,4 +1,5 @@
 ---
+description: "Shared: parse audit scope arguments, enforce skip patterns, detect trivial changes"
 user-invocable: false
 ---
 <!-- Shared partial: scope parsing, trivial check, skip pattern enforcement -->

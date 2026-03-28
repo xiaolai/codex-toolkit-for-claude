@@ -1,4 +1,5 @@
 ---
+description: "Shared: resolve plugin root, validate manifest, discover all artifacts, build cross-reference map"
 user-invocable: false
 ---
 <!-- Shared partial: plugin artifact discovery for Claude Code plugin directories -->

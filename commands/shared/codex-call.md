@@ -1,4 +1,5 @@
 ---
+description: "Shared: Codex availability test, developer-instructions builder, canonical call pattern, thread handling"
 user-invocable: false
 ---
 <!-- Shared partial: Codex call pattern (availability test, developer-instructions builder, call, thread handling) -->

@@ -1,4 +1,5 @@
 ---
+description: "Shared: manual analysis fallback when Codex is unavailable or returns empty"
 user-invocable: false
 ---
 <!-- Shared partial: fallback rules when Codex returns empty or fails -->
