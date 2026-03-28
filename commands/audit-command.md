@@ -136,7 +136,7 @@ prompt: |
 
   Commands must define what they output to the user:
   - **Report template**: Is there a defined output format (markdown template, table structure)?
-  - **Report completeness**: Does the template include all relevant information?
+  - **Report completeness**: Does the template include all expected fields — operation result, affected files or resources, thread/session ID for stateful commands, and next-step guidance for the user?
   - **Consistent format**: Is the format consistent with other commands in the same plugin?
   - **User-facing language**: Is the output written for users (not for Claude's internal processing)?
   - **Missing threadId**: For commands that call external services, is the session/thread ID included?

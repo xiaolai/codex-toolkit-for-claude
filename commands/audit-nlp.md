@@ -15,7 +15,7 @@ $ARGUMENTS
 
 Scans a repository for ALL natural language programming artifacts — Claude Code plugins, skills, agents, commands, rules, hooks, prompt templates, specs, plans, design docs — and audits them as an interconnected system. This is the comprehensive "audit everything" command for repos where **English is the programming language**.
 
-Unlike the targeted auditors (`/audit-skill`, `/audit-command`, `/audit-agent`, `/audit-rules`, `/audit-plugin`), this command discovers what's there first, then dispatches the appropriate checks.
+Unlike the targeted auditors (`/audit-skill`, `/audit-command`, `/audit-agent`, `/audit-rules`, `/audit-plugin`), this command discovers what's there first, then dispatches the category-specific checks defined in Step 3 (A1–A3 for plugin artifacts, B1–B3 for project config, C1–C3 for prompts, D1–D3 for agent frameworks, E1–E3 for design docs).
 
 ## Model & Settings Selection
 
@@ -119,7 +119,7 @@ Detected project types:
 
 ### Step 3: Audit by Category
 
-For each category with discovered files, apply the appropriate audit pillars.
+For each category with discovered files, apply the audit pillars defined below for that category (A1–A3, B1–B3, C1–C3, D1–D3, or E1–E3).
 
 Follow `commands/shared/codex-call.md` for availability test and call pattern.
 
@@ -140,7 +140,7 @@ prompt: |
   Files:
   {for each file: relative path + full content}
 
-  Apply the relevant checks for this category:
+  Apply ALL checks listed under this category's section below:
 
   ## For Category A (Plugin Artifacts) — apply ALL of these:
 
