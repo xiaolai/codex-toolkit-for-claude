@@ -45,6 +45,22 @@ mcp__codex__codex with:
 
 **IMPORTANT**: `model_reasoning_effort` MUST go inside the `config` object, never as a top-level parameter.
 
+### Error Handling
+
+If ANY Codex call (ping or main) returns an error, empty result, or fails with `[Tool result missing due to internal error]`:
+
+1. **Do NOT retry the same call.** MCP errors are usually transient server issues, not fixable by retrying.
+2. **Do NOT wait or poll.** If the tool returned an error, it has already failed.
+3. **Report the failure clearly:**
+   ```
+   Codex call failed: {error message or "internal MCP error"}
+   Falling back to manual analysis.
+   ```
+4. **Skip immediately to the calling command's Fallback section.** Every command that calls Codex MUST have a fallback path (see `commands/shared/fallback.md`). The fallback performs the same analysis using Claude directly — no Codex needed.
+5. **If this was a multi-step workflow** (audit→fix→verify) and a middle step fails, report what completed successfully so far, then fall back for the remaining steps.
+
+This ensures users NEVER wait indefinitely. A Codex failure is handled in seconds, not minutes.
+
 ### Thread Handling
 
 1. **Save the `threadId`** from every Codex response. Include it in the final report so the user can follow up with `/continue {threadId}`.
