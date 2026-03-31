@@ -134,15 +134,15 @@ codex login
 
 | Command | Description | Background | Sandbox |
 |---------|-------------|:----------:|---------|
-| `/audit` | Code audit — 5-dim `--mini` or 9-dim `--full` | `--background` | read-only |
-| `/implement` | Delegate plan to Codex for autonomous execution | `--background` | user-chosen |
-| `/bug-analyze` | Root cause analysis for user-described bugs | `--background` | read-only |
-| `/review-plan` | Architectural review (5 dimensions) | `--background` | read-only |
-| `/verify` | Verify fixes from a previous audit report | — | read-only |
-| `/audit-fix` | Audit→fix→verify loop (up to 3 rounds) | — | user-chosen |
-| `/continue` | Follow up on a previous Codex session via thread ID | — | — |
+| `/codex-toolkit:audit` | Code audit — 5-dim `--mini` or 9-dim `--full` | `--background` | read-only |
+| `/codex-toolkit:implement` | Delegate plan to Codex for autonomous execution | `--background` | user-chosen |
+| `/codex-toolkit:bug-analyze` | Root cause analysis for user-described bugs | `--background` | read-only |
+| `/codex-toolkit:review-plan` | Architectural review (5 dimensions) | `--background` | read-only |
+| `/codex-toolkit:verify` | Verify fixes from a previous audit report | — | read-only |
+| `/codex-toolkit:audit-fix` | Audit→fix→verify loop (up to 3 rounds) | — | user-chosen |
+| `/codex-toolkit:continue` | Follow up on a previous Codex session via thread ID | — | — |
 
-#### `/audit` Dimensions
+#### `/codex-toolkit:audit` Dimensions
 
 | Dimension | Mini | Full | Focus |
 |-----------|:----:|:----:|-------|
@@ -156,7 +156,7 @@ codex login
 | 8. Dependencies & Environment | — | x | CVEs, outdated packages, config security |
 | 9. Documentation | — | x | Missing docs, outdated comments |
 
-#### `/review-plan` Dimensions
+#### `/codex-toolkit:review-plan` Dimensions
 
 | Dimension | Focus |
 |-----------|-------|
@@ -166,7 +166,7 @@ codex login
 | 4. Ambiguity | Vague specs, undefined behavior, multiple interpretations |
 | 5. Risk & Sequencing | High-risk items buried late, dependency ordering |
 
-#### `/bug-analyze` Analysis Layers
+#### `/codex-toolkit:bug-analyze` Analysis Layers
 
 | Layer | Focus |
 |-------|-------|
@@ -180,12 +180,12 @@ codex login
 
 | Command | Target | Mini Pillars | Full Pillars |
 |---------|--------|:------------:|:------------:|
-| `/audit-plugin` | Plugin directories | 4 | 7 |
-| `/audit-skill` | SKILL.md files | 4 | 7 |
-| `/audit-command` | Slash command files | 4 | 7 |
-| `/audit-rules` | .claude/rules/ | 4 | 7 |
-| `/audit-agent` | Agent definitions | 4 | 7 |
-| `/audit-nlp` | All NL artifacts in repo | 5 categories | all pillars |
+| `/codex-toolkit:audit-plugin` | Plugin directories | 4 | 7 |
+| `/codex-toolkit:audit-skill` | SKILL.md files | 4 | 7 |
+| `/codex-toolkit:audit-command` | Slash command files | 4 | 7 |
+| `/codex-toolkit:audit-rules` | .claude/rules/ | 4 | 7 |
+| `/codex-toolkit:audit-agent` | Agent definitions | 4 | 7 |
+| `/codex-toolkit:audit-nlp` | All NL artifacts in repo | 5 categories | all pillars |
 
 #### Pillar Breakdown (per audit type)
 
@@ -205,20 +205,18 @@ codex login
 
 | Command | Description | Input |
 |---------|-------------|-------|
-| `/status` | Show active/recent jobs, review gate status | `[job-id] [--all]` |
-| `/result` | Fetch stored output from completed job | `[job-id]` |
-| `/cancel` | Cancel a running background job | `[job-id]` |
+| `/codex-toolkit:status` | Show active/recent jobs, review gate status | `[job-id] [--all]` |
+| `/codex-toolkit:result` | Fetch stored output from completed job | `[job-id]` |
+| `/codex-toolkit:cancel` | Cancel a running background job | `[job-id]` |
 
 ### Configuration Commands
 
 | Command | Description | Input |
 |---------|-------------|-------|
-| `/setup` | Check readiness, manage review gate | `[--enable-review-gate \| --disable-review-gate]` |
-| `/init` | Generate `.codex-toolkit.md` project config | interactive wizard |
-| `/preflight` | Check connectivity, discover available models | — |
-| `/refresh-knowledge` | Update Claude Code conventions from context7 | `[--check \| --update]` |
-
-> When installed as a plugin, commands appear as `/codex-toolkit:<command>`.
+| `/codex-toolkit:setup` | Check readiness, manage review gate | `[--enable-review-gate \| --disable-review-gate]` |
+| `/codex-toolkit:init` | Generate `.codex-toolkit.md` project config | interactive wizard |
+| `/codex-toolkit:preflight` | Check connectivity, discover available models | — |
+| `/codex-toolkit:refresh-knowledge` | Update Claude Code conventions from context7 | `[--check \| --update]` |
 
 ---
 
@@ -228,10 +226,10 @@ codex login
 
 | Command | Default Mode | `--background` | `--wait` |
 |---------|:------------:|:--------------:|:--------:|
-| `/audit` | foreground | returns job ID | explicit foreground |
-| `/implement` | foreground | returns job ID | explicit foreground |
-| `/bug-analyze` | foreground | returns job ID | explicit foreground |
-| `/review-plan` | foreground | returns job ID | explicit foreground |
+| `/codex-toolkit:audit` | foreground | returns job ID | explicit foreground |
+| `/codex-toolkit:implement` | foreground | returns job ID | explicit foreground |
+| `/codex-toolkit:bug-analyze` | foreground | returns job ID | explicit foreground |
+| `/codex-toolkit:review-plan` | foreground | returns job ID | explicit foreground |
 
 ### Execution Flow
 
@@ -320,7 +318,7 @@ stateDiagram-v2
 | `summary` | string | Brief description of the task |
 | `sessionId` | string | Claude Code session that created this job |
 | `pid` | number | OS process ID (for cancellation) |
-| `threadId` | string | Codex thread ID (for `/continue` follow-up) |
+| `threadId` | string | Codex thread ID (for `/codex-toolkit:continue` follow-up) |
 | `startedAt` | ISO 8601 | When execution started |
 | `completedAt` | ISO 8601 | When execution finished |
 | `logFile` | path | Progress log file location |
@@ -338,9 +336,9 @@ stateDiagram-v2
 
 | Command | Default filter | Override |
 |---------|----------------|----------|
-| `/status` | Current session only | `--all` for all sessions |
-| `/result` | Current session (no ref) / all (with ref) | — |
-| `/cancel` | All sessions | — |
+| `/codex-toolkit:status` | Current session only | `--all` for all sessions |
+| `/codex-toolkit:result` | Current session (no ref) / all (with ref) | — |
+| `/codex-toolkit:cancel` | All sessions | — |
 
 ---
 
@@ -500,7 +498,7 @@ flowchart TD
 | `audit_type` | enum | No | `mini` or `full` |
 | `scope` | string | No | What was audited |
 | `model` | string | No | Codex model used |
-| `thread_id` | string | No | Thread ID for `/continue` |
+| `thread_id` | string | No | Thread ID for `/codex-toolkit:continue` |
 | `dimension_summary` | array | No | Per-dimension severity counts |
 
 ### Finding Fields
@@ -540,7 +538,7 @@ flowchart TD
   "dimension_summary": [
     { "dimension": 1, "name": "Logic & Correctness", "critical": 0, "high": 1, "medium": 2, "low": 0 }
   ],
-  "next_steps": ["Fix the high-severity race condition first", "Run /verify to confirm fixes"]
+  "next_steps": ["Fix the high-severity race condition first", "Run /codex-toolkit:verify to confirm fixes"]
 }
 ```
 
@@ -566,7 +564,7 @@ flowchart LR
 | Layer | Component | Trigger | Purpose |
 |-------|-----------|---------|---------|
 | 1. Knowledge Skill | `claude-code-conventions/SKILL.md` | Every plugin-audit command | Inject Claude Code schemas into Codex |
-| 2. Knowledge Refresh | `/refresh-knowledge` | Manual (`--check` / `--update`) | Sync skill with latest official docs |
+| 2. Knowledge Refresh | `/codex-toolkit:refresh-knowledge` | Manual (`--check` / `--update`) | Sync skill with latest official docs |
 | 3. Cross-Validation | `cross-validator` agent | After audit commands | Catch false positives, hallucinated conventions |
 
 ### Knowledge Skill Contents
@@ -706,7 +704,7 @@ Uses Node.js native test runner (`node --test`).
 | "Not authenticated" | No login session | `codex login` or set `OPENAI_API_KEY` |
 | "No models available" | Stale models cache | `codex login --refresh` |
 | Background job stuck | Process hung | `/codex-toolkit:cancel <job-id>` |
-| Thread expired on `/continue` | MCP server restarted | Start fresh with the relevant command |
+| Thread expired on `/codex-toolkit:continue` | MCP server restarted | Start fresh with the relevant command |
 | Review gate keeps blocking | Gate too aggressive | `/codex-toolkit:setup --disable-review-gate` |
 | Orphaned codex processes | Session crashed | `ps aux \| grep codex` then `kill <pid>` |
 | Can't find state directory | Env var not set | Check `$CLAUDE_PLUGIN_DATA/state/` or `$TMPDIR/codex-toolkit/` |

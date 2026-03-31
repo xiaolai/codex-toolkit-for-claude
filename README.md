@@ -31,43 +31,41 @@ flowchart LR
 
 | Command | Description | Background |
 |---------|-------------|:----------:|
-| `/audit` | Code audit — 5-dim `--mini` or 9-dim `--full` | `--background` |
-| `/implement` | Delegate plan to Codex for autonomous execution | `--background` |
-| `/bug-analyze` | Root cause analysis for user-described bugs | `--background` |
-| `/review-plan` | Architectural review (consistency, feasibility, risk) | `--background` |
-| `/verify` | Verify fixes from a previous audit | — |
-| `/audit-fix` | Audit→fix→verify loop (up to 3 rounds) | — |
-| `/continue` | Follow up on a previous Codex session via thread ID | — |
+| `/codex-toolkit:audit` | Code audit — 5-dim `--mini` or 9-dim `--full` | `--background` |
+| `/codex-toolkit:implement` | Delegate plan to Codex for autonomous execution | `--background` |
+| `/codex-toolkit:bug-analyze` | Root cause analysis for user-described bugs | `--background` |
+| `/codex-toolkit:review-plan` | Architectural review (consistency, feasibility, risk) | `--background` |
+| `/codex-toolkit:verify` | Verify fixes from a previous audit | — |
+| `/codex-toolkit:audit-fix` | Audit→fix→verify loop (up to 3 rounds) | — |
+| `/codex-toolkit:continue` | Follow up on a previous Codex session via thread ID | — |
 
 ### Specialized Audits
 
 | Command | Target | Pillars |
 |---------|--------|:-------:|
-| `/audit-plugin` | Plugin directories | 4 mini / 7 full |
-| `/audit-skill` | SKILL.md files | 4 mini / 7 full |
-| `/audit-command` | Slash command files | 4 mini / 7 full |
-| `/audit-rules` | .claude/rules/ | 4 mini / 7 full |
-| `/audit-agent` | Agent definitions | 4 mini / 7 full |
-| `/audit-nlp` | All NL artifacts in repo | 5 categories |
+| `/codex-toolkit:audit-plugin` | Plugin directories | 4 mini / 7 full |
+| `/codex-toolkit:audit-skill` | SKILL.md files | 4 mini / 7 full |
+| `/codex-toolkit:audit-command` | Slash command files | 4 mini / 7 full |
+| `/codex-toolkit:audit-rules` | .claude/rules/ | 4 mini / 7 full |
+| `/codex-toolkit:audit-agent` | Agent definitions | 4 mini / 7 full |
+| `/codex-toolkit:audit-nlp` | All NL artifacts in repo | 5 categories |
 
 ### Job Management
 
 | Command | Description |
 |---------|-------------|
-| `/status` | Show active/recent jobs, review gate status |
-| `/result` | Fetch stored output from completed job |
-| `/cancel` | Cancel a running background job |
+| `/codex-toolkit:status` | Show active/recent jobs, review gate status |
+| `/codex-toolkit:result` | Fetch stored output from completed job |
+| `/codex-toolkit:cancel` | Cancel a running background job |
 
 ### Configuration
 
 | Command | Description |
 |---------|-------------|
-| `/setup` | Check readiness, manage stop-time review gate |
-| `/init` | Generate `.codex-toolkit.md` project config |
-| `/preflight` | Check connectivity, discover available models |
-| `/refresh-knowledge` | Update Claude Code conventions from context7 docs |
-
-> When installed as a plugin, commands appear as `/codex-toolkit:<command>`.
+| `/codex-toolkit:setup` | Check readiness, manage stop-time review gate |
+| `/codex-toolkit:init` | Generate `.codex-toolkit.md` project config |
+| `/codex-toolkit:preflight` | Check connectivity, discover available models |
+| `/codex-toolkit:refresh-knowledge` | Update Claude Code conventions from context7 docs |
 
 ## Quick Start
 
@@ -83,7 +81,7 @@ flowchart LR
 
 | Feature | Description |
 |---------|-------------|
-| Background execution | `--background` flag on 4 commands. Returns job ID, poll with `/status`, fetch with `/result`. |
+| Background execution | `--background` flag on 4 commands. Returns job ID, poll with `/codex-toolkit:status`, fetch with `/codex-toolkit:result`. |
 | Job state management | Persistent per-workspace state (50 jobs max), session-scoped filtering, prefix-match IDs. |
 | Session lifecycle hooks | SessionStart assigns ID, SessionEnd kills orphaned processes and cleans state. |
 | Stop-time review gate | Opt-in Stop hook runs Codex adversarial review before session end. ALLOW/BLOCK. |
@@ -92,7 +90,7 @@ flowchart LR
 | Fallback | Every Codex command falls back to manual Claude analysis if Codex is unavailable. |
 | Tests | 52 tests covering state, jobs, process, rendering, command validation. |
 
-## codex-toolkit vs codex-plugin-cc (OpenAI)
+## codex-toolkit vs [codex-plugin-cc](https://github.com/openai/codex-plugin-cc) (OpenAI)
 
 | Capability | codex-toolkit | codex-plugin-cc |
 |------------|:-------------:|:---------------:|
@@ -108,9 +106,9 @@ flowchart LR
 | Project config | `.codex-toolkit.md` | `.codex/config.toml` |
 | Structured output schema | dimension + confidence | confidence |
 | Progressive disclosure | mini → full → specialized | single mode |
-| Adversarial review | via review gate | `/adversarial-review` command |
-| Task delegation | `/implement` (plan-based) | `/rescue` (free-form) |
-| Thread resume | `/continue <threadId>` | `--resume` / `--fresh` |
+| Adversarial review | via review gate | `/codex:adversarial-review` command |
+| Task delegation | `/codex-toolkit:implement` (plan-based) | `/codex:rescue` (free-form) |
+| Thread resume | `/codex-toolkit:continue <threadId>` | `--resume` / `--fresh` |
 | Transport | MCP + CLI | JSON-RPC app-server + TCP broker |
 | Tests | 52 | 50+ |
 | Total commands | 20 + 5 partials | 7 + 3 skills |
