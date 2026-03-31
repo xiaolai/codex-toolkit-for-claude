@@ -74,7 +74,7 @@ Run Codex calls **one at a time**. Wait for each call to complete before startin
 
 ### Job Tracking
 
-Every Codex call MUST be tracked as a job for status/result/cancel support:
+Every Codex call SHOULD be tracked as a job for status/result/cancel support. Background jobs are tracked automatically by `codex-runner.mjs`. For foreground jobs, commands may optionally register jobs using the pattern below:
 
 1. **Before the call**: Register a job in the state:
    ```bash

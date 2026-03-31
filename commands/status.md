@@ -13,17 +13,17 @@ $ARGUMENTS
 
 ### Step 1: Build status snapshot
 
-Run the status script to gather job state:
+Load the job state from the workspace state directory:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/scripts/codex-status.mjs" $ARGUMENTS
+node -e "
+  const { buildStatusSnapshot } = await import('${CLAUDE_PLUGIN_ROOT}/scripts/lib/job-control.mjs');
+  const snapshot = buildStatusSnapshot(process.cwd(), { all: process.argv[1] === '--all' });
+  console.log(JSON.stringify(snapshot, null, 2));
+" -- "$(/bin/echo $ARGUMENTS | grep -o '\-\-all' || true)"
 ```
 
-If the script is not yet available, build the status manually:
-
-1. Read the state file from the workspace state directory
-2. Filter jobs for the current session (unless `--all` flag is present)
-3. Sort by most recent first
+Parse the JSON output. The snapshot contains: `running` (active jobs), `latestFinished`, `recent` (completed jobs), `config` (review gate status), and `needsReview`.
 
 ### Step 2: Display status
 

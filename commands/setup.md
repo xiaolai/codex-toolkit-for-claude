@@ -35,13 +35,23 @@ Use `AskUserQuestion` with "Enable" and "Cancel" options.
 
 ### Step 2: Update review gate config
 
-If the user chose to enable/disable:
+If the user chose to enable:
 
 ```bash
 node -e "
   const { setConfig } = await import('${CLAUDE_PLUGIN_ROOT}/scripts/lib/state.mjs');
-  setConfig(process.cwd(), 'stopReviewGate', {true|false});
-  console.log('Review gate {enabled|disabled}.');
+  setConfig(process.cwd(), 'stopReviewGate', true);
+  console.log('Review gate enabled.');
+"
+```
+
+If the user chose to disable:
+
+```bash
+node -e "
+  const { setConfig } = await import('${CLAUDE_PLUGIN_ROOT}/scripts/lib/state.mjs');
+  setConfig(process.cwd(), 'stopReviewGate', false);
+  console.log('Review gate disabled.');
 "
 ```
 
