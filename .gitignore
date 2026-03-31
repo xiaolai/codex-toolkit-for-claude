@@ -6,3 +6,4 @@ tmp/
 .env
 .env.*
 node_modules/
+.codex-toolkit.md

@@ -71,3 +71,81 @@ This ensures users NEVER wait indefinitely. A Codex failure is handled in second
 ### Sequential Execution
 
 Run Codex calls **one at a time**. Wait for each call to complete before starting the next. Do NOT run multiple Codex calls in parallel.
+
+### Job Tracking
+
+Every Codex call MUST be tracked as a job for status/result/cancel support:
+
+1. **Before the call**: Register a job in the state:
+   ```bash
+   node -e "
+     const { generateJobId, upsertJob } = await import('${CLAUDE_PLUGIN_ROOT}/scripts/lib/state.mjs');
+     const id = generateJobId('{kind}');
+     upsertJob(process.cwd(), {
+       id, kind: '{kind}', status: 'running',
+       summary: '{brief description}',
+       startedAt: new Date().toISOString(),
+     });
+     console.log(id);
+   "
+   ```
+   Save the returned `{jobId}`.
+
+2. **After success**: Update job status and store result:
+   ```bash
+   node -e "
+     const { upsertJob, writeJobFile } = await import('${CLAUDE_PLUGIN_ROOT}/scripts/lib/state.mjs');
+     upsertJob(process.cwd(), {
+       id: '{jobId}', status: 'completed',
+       threadId: '{threadId}',
+       completedAt: new Date().toISOString(),
+     });
+     writeJobFile(process.cwd(), '{jobId}', {
+       rawOutput: '{summary of findings}',
+       threadId: '{threadId}',
+     });
+   "
+   ```
+
+3. **After failure**: Update job status with error:
+   ```bash
+   node -e "
+     const { upsertJob, writeJobFile } = await import('${CLAUDE_PLUGIN_ROOT}/scripts/lib/state.mjs');
+     upsertJob(process.cwd(), {
+       id: '{jobId}', status: 'failed',
+       completedAt: new Date().toISOString(),
+       errorMessage: '{error description}',
+     });
+     writeJobFile(process.cwd(), '{jobId}', { error: '{error description}' });
+   "
+   ```
+
+Include `{jobId}` in the final report alongside `{threadId}`.
+
+### Background Execution
+
+Commands that support `--background` / `--wait` flags:
+
+- `--wait` (default): Run Codex in the foreground, block until complete, display result
+- `--background`: Register a job, spawn a detached Codex runner, return immediately with job ID
+
+**When `--background` is detected**:
+
+1. Parse scope and build the prompt as usual
+2. Instead of calling `mcp__codex__codex`, run:
+   ```bash
+   node "${CLAUDE_PLUGIN_ROOT}/scripts/codex-runner.mjs" \
+     --kind {kind} --model {chosen_model} --effort {chosen_effort} \
+     --sandbox {chosen_sandbox} --background \
+     --summary "{brief description}" \
+     -- "{full prompt}"
+   ```
+3. Parse the JSON output to get `{jobId}`
+4. Report:
+   ```
+   Job `{jobId}` started in background.
+   - Check progress: `/codex-toolkit:status {jobId}`
+   - Get result when done: `/codex-toolkit:result {jobId}`
+   - Cancel: `/codex-toolkit:cancel {jobId}`
+   ```
+5. STOP — do not wait for the result

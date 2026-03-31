@@ -1,5 +1,6 @@
 ---
 description: Send a plan to Codex for architectural review — checks consistency, completeness, feasibility, ambiguity, and risk
+argument-hint: "[plan-file] [--background | --wait]"
 ---
 
 ## User Input
@@ -22,6 +23,16 @@ Follow the instructions in `commands/shared/model-selection.md` to discover avai
 
 ## Workflow
 
+### Step 0: Parse Execution Mode
+
+Parse `$ARGUMENTS` for `--background` or `--wait` flags (remove the flag from remaining arguments):
+
+| Flag | Mode |
+|------|------|
+| `--background` | Background — spawn detached Codex runner, return job ID |
+| `--wait` | Foreground (explicit) — same as default |
+| Neither | Foreground (default) — run inline, block until complete |
+
 ### Step 1: Determine Scope
 
 Parse `$ARGUMENTS` to find the plan:
@@ -36,7 +47,9 @@ Read the plan file. If it references other documents (design docs, specs, AGENTS
 
 ### Step 2: Send Plan for Review
 
-Follow `commands/shared/codex-call.md` for availability test and call pattern.
+If `--background` mode was selected, follow the **Background Execution** section in `commands/shared/codex-call.md`. Build the prompt as described below, then hand off to the background runner with `--kind review-plan`.
+
+Follow `commands/shared/codex-call.md` for availability test, call pattern, and **Job Tracking**.
 
 - **Command persona**: "You are an architecture reviewer evaluating plan feasibility."
 - **Sandbox**: `read-only`

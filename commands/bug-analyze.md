@@ -1,6 +1,6 @@
 ---
 description: Root cause analysis for user-described bugs using Codex
-argument-hint: "<bug description>"
+argument-hint: "<bug description> [--background | --wait]"
 ---
 
 ## Bug Description
@@ -18,6 +18,16 @@ Follow the instructions in `commands/shared/model-selection.md` to discover avai
 - **Include sandbox question**: No (bug analysis always uses `read-only`)
 
 ## Workflow
+
+### Step 0: Parse Execution Mode
+
+Parse `$ARGUMENTS` for `--background` or `--wait` flags (remove the flag from remaining arguments):
+
+| Flag | Mode |
+|------|------|
+| `--background` | Background — spawn detached Codex runner, return job ID |
+| `--wait` | Foreground (explicit) — same as default |
+| Neither | Foreground (default) — run inline, block until complete |
 
 ### Step 1: Parse Bug Description
 
@@ -47,7 +57,9 @@ If the bug description references specific files or paths, use `commands/shared/
 
 ### Step 3: Deep Analysis with Codex
 
-Follow `commands/shared/codex-call.md` for availability test and call pattern.
+If `--background` mode was selected, follow the **Background Execution** section in `commands/shared/codex-call.md`. Build the prompt as described below, then hand off to the background runner with `--kind bug-analyze`.
+
+Follow `commands/shared/codex-call.md` for availability test, call pattern, and **Job Tracking**.
 
 - **Command persona**: "You are a root cause analyst. Trace bugs to their origin."
 - **Sandbox**: `read-only`

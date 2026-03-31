@@ -1,145 +1,133 @@
 # codex-toolkit
 
-OpenAI Codex MCP integration for Claude Code.
+OpenAI Codex MCP integration for Claude Code — audit, implement, verify, review, and debug via Codex.
 
-Use OpenAI's Codex models as an autonomous worker from within Claude Code — for code audits, implementation, verification, bug analysis, and plan review.
+Part of the [xiaolai plugin marketplace](https://github.com/xiaolai/claude-plugin-marketplace). For the full reference, see **[GUIDE.md](GUIDE.md)**.
 
-Part of the [xiaolai plugin marketplace](https://github.com/xiaolai/claude-plugin-marketplace).
-
-## Installation
-
-### Prerequisites
-
-1. Install [Codex CLI](https://github.com/openai/codex) (v0.101.0 or later):
+## Install
 
 ```bash
-npm install -g @openai/codex
-```
-
-2. Authenticate with OpenAI — we recommend using a subscription (ChatGPT Plus/Pro) rather than an API key:
-
-```bash
-codex login
-```
-
-If you prefer using an API key instead, set it in your environment:
-
-```bash
-export OPENAI_API_KEY="your-key-here"
-```
-
-### Install the plugin
-
-First, add the marketplace (once):
-
-```
+npm install -g @openai/codex && codex login    # prerequisite
 /plugin marketplace add xiaolai/claude-plugin-marketplace
-```
-
-Then install:
-
-```
 /plugin install codex-toolkit@xiaolai
+/codex-toolkit:setup                           # verify readiness
 ```
 
-Choose an install scope based on your needs:
+## How It Works
 
-| Scope | Command | Effect |
-|-------|---------|--------|
-| **User** (default) | `/plugin install codex-toolkit@xiaolai` | Available in all your projects |
-| **Project** | `/plugin install codex-toolkit@xiaolai --scope project` | Shared with team via `.claude/settings.json` (committed to repo) |
-| **Local** | `/plugin install codex-toolkit@xiaolai --scope local` | Only you, only this repo (gitignored) |
-
-### Configure for your project (optional)
-
-Run `/init` inside your project to generate a `.codex-toolkit.md` config file. This lets you set project-specific defaults:
-
-- Default model and reasoning effort
-- Audit focus (balanced, security-first, performance-first, quality-first)
-- File patterns to skip during audits
-- Project-specific instructions for Codex (your stack, conventions, constraints)
-
-If no config file exists, commands use sensible built-in defaults.
+```mermaid
+flowchart LR
+    User -->|"slash commands"| Claude["Claude Code<br/>(orchestrator)"]
+    Claude -->|"MCP (foreground)"| Codex["Codex<br/>(worker)"]
+    Claude -->|"CLI (background)"| Codex
+    Codex -->|"findings + threadId"| Claude
+    Claude -->|"structured report"| User
+    Claude -->|"fallback if Codex down"| Claude
+```
 
 ## Commands
 
+### Core
+
+| Command | Description | Background |
+|---------|-------------|:----------:|
+| `/audit` | Code audit — 5-dim `--mini` or 9-dim `--full` | `--background` |
+| `/implement` | Delegate plan to Codex for autonomous execution | `--background` |
+| `/bug-analyze` | Root cause analysis for user-described bugs | `--background` |
+| `/review-plan` | Architectural review (consistency, feasibility, risk) | `--background` |
+| `/verify` | Verify fixes from a previous audit | — |
+| `/audit-fix` | Audit→fix→verify loop (up to 3 rounds) | — |
+| `/continue` | Follow up on a previous Codex session via thread ID | — |
+
+### Specialized Audits
+
+| Command | Target | Pillars |
+|---------|--------|:-------:|
+| `/audit-plugin` | Plugin directories | 4 mini / 7 full |
+| `/audit-skill` | SKILL.md files | 4 mini / 7 full |
+| `/audit-command` | Slash command files | 4 mini / 7 full |
+| `/audit-rules` | .claude/rules/ | 4 mini / 7 full |
+| `/audit-agent` | Agent definitions | 4 mini / 7 full |
+| `/audit-nlp` | All NL artifacts in repo | 5 categories |
+
+### Job Management
+
 | Command | Description |
 |---------|-------------|
-| `/init` | Initialize project config — set default model, audit focus, skip patterns |
-| `/preflight` | Check Codex connectivity, auth status, and discover available models |
-| `/implement` | Delegate an implementation plan to Codex for autonomous execution |
-| `/audit` | Code audit — fast 5-dimension (`--mini`, default) or thorough 9-dimension (`--full`) |
-| `/verify` | Verify that issues from a previous audit have been fixed |
-| `/bug-analyze` | Root cause analysis for user-described bugs |
-| `/review-plan` | Architectural review of implementation plans |
-| `/audit-fix` | Full audit→fix→verify loop — runs until all issues are resolved or you stop |
-| `/audit-plugin` | Audit a Claude Code plugin for schema, specification, security, and structural defects |
-| `/audit-skill` | Audit SKILL.md files for trigger quality, content structure, and context efficiency |
-| `/audit-command` | Audit slash command files for workflow clarity, tool selection, and error handling |
-| `/audit-rules` | Audit .claude/rules/ for enforceability, token budget, and conflict detection |
-| `/audit-agent` | Audit agent definitions for triggering accuracy, system prompt quality, and safety |
-| `/audit-nlp` | Audit ALL NL programming artifacts in a repo (prompts, agents, skills, commands, rules, specs) |
-| `/refresh-knowledge` | Fetch latest Claude Code docs via context7, update convention knowledge |
-| `/continue` | Continue a previous Codex session — iterate on findings or request fixes |
+| `/status` | Show active/recent jobs, review gate status |
+| `/result` | Fetch stored output from completed job |
+| `/cancel` | Cancel a running background job |
 
-> When installed as a plugin, commands appear as `/codex-toolkit:<command>` (e.g. `/codex-toolkit:audit`).
+### Configuration
 
-## Cross-provider knowledge architecture
+| Command | Description |
+|---------|-------------|
+| `/setup` | Check readiness, manage stop-time review gate |
+| `/init` | Generate `.codex-toolkit.md` project config |
+| `/preflight` | Check connectivity, discover available models |
+| `/refresh-knowledge` | Update Claude Code conventions from context7 docs |
 
-Codex has no native knowledge of Claude Code conventions. The plugin solves this with three layers:
+> When installed as a plugin, commands appear as `/codex-toolkit:<command>`.
 
-1. **Knowledge skill** — `claude-code-conventions` SKILL.md is the single source of truth for Claude Code schemas. Injected into Codex's `developer-instructions` for plugin-audit commands.
-2. **Knowledge refresh** — `/refresh-knowledge` fetches latest docs via context7 MCP, detects drift, and updates the skill.
-3. **Cross-validation** — `cross-validator` agent uses Claude's native knowledge to verify Codex's findings, catching false positives and hallucinated conventions.
-
-## How it works
-
-Each command follows the same pattern:
-
-1. **Choose model and settings** — pick a Codex model, reasoning effort, and sandbox level
-2. **Send to Codex** — the task is dispatched to `mcp__codex__codex` (Codex running as an MCP server) with `developer-instructions` to set the role persona and `config` for reasoning effort
-3. **Fallback** — if Codex is unavailable or returns empty, Claude performs the task manually
-4. **Report** — structured output with findings, verdicts, thread ID, and next steps
-
-Every command output includes a **thread ID** that you can pass to `/continue` to iterate on findings, request fixes, or drill deeper — without re-sending the full context.
-
-## Audit→Fix→Verify workflow
-
-The `/audit-fix` command runs the full cycle automatically:
-
-```
-audit → fix → verify → (issues remain?) → fix → verify → ... → ACCEPTED
-```
-
-1. Audits your code (mini or full — your choice)
-2. Sends findings to Claude or Codex to fix (your choice)
-3. Verifies each fix was actually resolved
-4. Repeats up to 3 rounds or until clean
-5. Reports final status: ACCEPTED / PARTIAL / UNCHANGED
-
-You can also run each step manually:
-
-```
-/audit               # find issues (defaults to --mini)
-/audit --full        # thorough 9-dimension audit
-# fix them yourself
-/verify report.md    # check your fixes
-```
-
-## Available models
-
-Models are discovered dynamically at runtime from `~/.codex/models_cache.json` (maintained by the Codex CLI). Zero hardcoded model names — new models appear automatically after `codex login` refreshes the cache. If the cache is missing, the preflight script attempts `codex login --refresh` to create it.
-
-To check availability manually:
+## Quick Start
 
 ```bash
-bash scripts/codex-preflight.sh    # JSON to stdout
+/codex-toolkit:audit --mini              # fast audit of uncommitted changes
+/codex-toolkit:audit --full --background # thorough audit, don't wait
+/codex-toolkit:status                    # check progress
+/codex-toolkit:result                    # get results
+/codex-toolkit:audit-fix                 # auto-fix cycle
 ```
 
-Or run `/preflight` inside Claude Code for a human-friendly report.
+## Key Features
 
-## MCP server
+| Feature | Description |
+|---------|-------------|
+| Background execution | `--background` flag on 4 commands. Returns job ID, poll with `/status`, fetch with `/result`. |
+| Job state management | Persistent per-workspace state (50 jobs max), session-scoped filtering, prefix-match IDs. |
+| Session lifecycle hooks | SessionStart assigns ID, SessionEnd kills orphaned processes and cleans state. |
+| Stop-time review gate | Opt-in Stop hook runs Codex adversarial review before session end. ALLOW/BLOCK. |
+| Structured output schema | JSON schema with per-finding `dimension`, `confidence`, `dimension_summary`. |
+| Cross-provider knowledge | Injects Claude Code conventions into Codex, refreshes from context7, cross-validates. |
+| Fallback | Every Codex command falls back to manual Claude analysis if Codex is unavailable. |
+| Tests | 52 tests covering state, jobs, process, rendering, command validation. |
 
-This plugin bundles a `.mcp.json` that registers the Codex MCP server. Codex authenticates via subscription (recommended, use `codex login`) or an `OPENAI_API_KEY` environment variable.
+## codex-toolkit vs codex-plugin-cc (OpenAI)
 
-If you already have Codex configured in your `~/.claude/config.json`, the plugin's MCP config will coexist — but you may want to remove the duplicate from `config.json` to avoid running two Codex MCP servers.
+| Capability | codex-toolkit | codex-plugin-cc |
+|------------|:-------------:|:---------------:|
+| Audit dimensions | 5 mini / 9 full | 1 (flat review) |
+| Specialized artifact audits | 6 types | 0 |
+| Audit→fix→verify loop | 3-round auto-cycle | — |
+| Background execution | `--background` | `--background` |
+| Job state management | 50 jobs, session-scoped | 50 jobs, session-scoped |
+| Session lifecycle hooks | SessionStart + SessionEnd | SessionStart + SessionEnd |
+| Stop-time review gate | Codex adversarial review | Codex adversarial review |
+| Cross-provider knowledge | skill injection + refresh + validation | N/A (same ecosystem) |
+| Fallback when Codex down | full manual analysis via Claude | fails |
+| Project config | `.codex-toolkit.md` | `.codex/config.toml` |
+| Structured output schema | dimension + confidence | confidence |
+| Progressive disclosure | mini → full → specialized | single mode |
+| Adversarial review | via review gate | `/adversarial-review` command |
+| Task delegation | `/implement` (plan-based) | `/rescue` (free-form) |
+| Thread resume | `/continue <threadId>` | `--resume` / `--fresh` |
+| Transport | MCP + CLI | JSON-RPC app-server + TCP broker |
+| Tests | 52 | 50+ |
+| Total commands | 20 + 5 partials | 7 + 3 skills |
+| Scripts layer | ~600 LOC | ~3,200 LOC |
+
+### In Short
+
+**codex-toolkit** — multi-dimensional auditing platform. Deep structured analysis, progressive disclosure (mini → full → specialized), automated fix cycles, cross-provider knowledge bridge.
+
+**codex-plugin-cc** — focused Codex bridge. Mature runtime (app-server protocol, TCP broker, progress streaming), polished job UX, adversarial review command.
+
+Both share: persistent job state, background execution, session lifecycle hooks, stop-time review gates.
+
+## MCP Server
+
+The plugin registers Codex as an MCP server via `.mcp.json`. Authenticate via subscription (`codex login`) or `OPENAI_API_KEY`.
+
+## License
+
+MIT

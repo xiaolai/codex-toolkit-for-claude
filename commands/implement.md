@@ -1,6 +1,6 @@
 ---
 description: Send a plan to Codex MCP for full autonomous implementation — choose model, effort, and sandbox level
-argument-hint: "<plan-file-or-inline-plan>"
+argument-hint: "<plan-file-or-inline-plan> [--background | --wait]"
 ---
 
 # Codex Implement
@@ -14,6 +14,16 @@ $ARGUMENTS
 ```
 
 ## Workflow
+
+### Step 0: Parse Execution Mode
+
+Parse `$ARGUMENTS` for `--background` or `--wait` flags (remove the flag from remaining arguments):
+
+| Flag | Mode |
+|------|------|
+| `--background` | Background — spawn detached Codex runner, return job ID |
+| `--wait` | Foreground (explicit) — same as default |
+| Neither | Foreground (default) — run inline, block until complete |
 
 ### Step 1: Resolve the plan
 
@@ -47,7 +57,9 @@ Show the final configuration:
 - Reasoning effort: {chosen_effort}
 - Sandbox: {chosen_sandbox}
 
-Follow `commands/shared/codex-call.md` for availability test and call pattern.
+If `--background` mode was selected, follow the **Background Execution** section in `commands/shared/codex-call.md`. Build the prompt as described below, then hand off to the background runner with `--kind implement`.
+
+Follow `commands/shared/codex-call.md` for availability test, call pattern, and **Job Tracking**.
 
 - **Command persona**: "You are an autonomous implementation agent. Execute plans completely."
 - **Sandbox**: `{chosen_sandbox}`

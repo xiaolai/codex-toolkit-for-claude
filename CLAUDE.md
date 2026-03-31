@@ -5,41 +5,67 @@ OpenAI Codex MCP integration for Claude Code. Slash commands that delegate work 
 ## Project structure
 
 ```
-commands/           Slash command definitions (*.md with YAML frontmatter)
+commands/               Slash command definitions (*.md with YAML frontmatter)
   shared/
-    model-selection.md  Shared partial — dynamic model discovery (user-invocable: false)
-    codex-call.md       Shared partial — availability test, call pattern, thread handling (user-invocable: false)
-    scope-parse.md      Shared partial — scope parsing, trivial check, skip patterns (user-invocable: false)
-    fallback.md         Shared partial — manual fallback rules (user-invocable: false)
-    plugin-discover.md  Shared partial — plugin artifact discovery for plugin directories (user-invocable: false)
-  preflight.md        /preflight — connectivity + model check
-  implement.md        /implement — autonomous plan execution
-  audit.md            /audit — code audit (--full 9-dim or --mini 5-dim)
-  verify.md           /verify — verify fixes from previous audit
-  bug-analyze.md      /bug-analyze — root cause analysis
-  review-plan.md      /review-plan — architectural plan review
-  audit-fix.md        /audit-fix — audit→fix→verify loop
-  audit-plugin.md     /audit-plugin — plugin artifact audit (schema, spec, security, structure)
-  audit-skill.md      /audit-skill — skill SKILL.md audit (triggers, content, context efficiency)
-  audit-command.md    /audit-command — command .md audit (workflow, tools, error handling)
-  audit-rules.md      /audit-rules — .claude/rules/ audit (enforceability, budget, conflicts)
-  audit-agent.md      /audit-agent — agent .md audit (triggering, system prompt, tools, safety)
-  audit-nlp.md        /audit-nlp — repo-wide NL programming audit (prompts, agents, skills, rules, specs)
-  refresh-knowledge.md /refresh-knowledge — fetch latest Claude Code docs, update convention skill
-  continue.md         /continue — multi-turn follow-up via codex-reply
-  init.md             /init — generate .codex-toolkit.md project config
+    model-selection.md    Shared partial — dynamic model discovery (user-invocable: false)
+    codex-call.md         Shared partial — availability test, call pattern, thread/job handling (user-invocable: false)
+    scope-parse.md        Shared partial — scope parsing, trivial check, skip patterns (user-invocable: false)
+    fallback.md           Shared partial — manual fallback rules (user-invocable: false)
+    plugin-discover.md    Shared partial — plugin artifact discovery for plugin directories (user-invocable: false)
+  preflight.md          /preflight — connectivity + model check
+  implement.md          /implement — autonomous plan execution (supports --background)
+  audit.md              /audit — code audit --full 9-dim or --mini 5-dim (supports --background)
+  verify.md             /verify — verify fixes from previous audit
+  bug-analyze.md        /bug-analyze — root cause analysis (supports --background)
+  review-plan.md        /review-plan — architectural plan review (supports --background)
+  audit-fix.md          /audit-fix — audit→fix→verify loop
+  audit-plugin.md       /audit-plugin — plugin artifact audit (schema, spec, security, structure)
+  audit-skill.md        /audit-skill — skill SKILL.md audit (triggers, content, context efficiency)
+  audit-command.md      /audit-command — command .md audit (workflow, tools, error handling)
+  audit-rules.md        /audit-rules — .claude/rules/ audit (enforceability, budget, conflicts)
+  audit-agent.md        /audit-agent — agent .md audit (triggering, system prompt, tools, safety)
+  audit-nlp.md          /audit-nlp — repo-wide NL programming audit (prompts, agents, skills, rules, specs)
+  refresh-knowledge.md  /refresh-knowledge — fetch latest Claude Code docs, update convention skill
+  continue.md           /continue — multi-turn follow-up via codex-reply
+  init.md               /init — generate .codex-toolkit.md project config
+  status.md             /status — show active/recent jobs, review gate status
+  result.md             /result — fetch stored output from completed job
+  cancel.md             /cancel — cancel a running background job
+  setup.md              /setup — check readiness, manage stop-time review gate
 agents/
-  cross-validator.md  Cross-validate Codex audit findings against Claude's native knowledge
+  cross-validator.md    Cross-validate Codex audit findings against Claude's native knowledge
 skills/
   codex-toolkit/
     claude-code-conventions/
-      SKILL.md        Canonical Claude Code artifact schemas, injected into Codex developer-instructions
+      SKILL.md          Canonical Claude Code artifact schemas, injected into Codex developer-instructions
 scripts/
-  codex-preflight.sh    Model discovery script (probes candidates in parallel)
-.mcp.json               Registers Codex MCP server
+  codex-preflight.sh      Model discovery script (reads ~/.codex/models_cache.json)
+  codex-runner.mjs        Background/foreground job runner (spawns codex CLI, tracks state)
+  session-lifecycle-hook.mjs  SessionStart/SessionEnd hook handler (session ID, cleanup)
+  stop-review-gate-hook.mjs   Stop hook — adversarial review gate (opt-in, blocks session end)
+  lib/
+    state.mjs             Job state persistence (workspace-hashed dirs, up to 50 jobs)
+    job-control.mjs       Job lifecycle, filtering, enrichment, status snapshots
+    workspace.mjs         Workspace root detection (git root or cwd)
+    process.mjs           Process management (run commands, terminate process trees)
+    render.mjs            Output formatting (status reports, findings tables, cancel reports)
+hooks/
+  hooks.json              Registers SessionStart, SessionEnd, and Stop hooks
+schemas/
+  audit-output.schema.json  JSON schema for structured audit output
+tests/
+  helpers.mjs             Test utilities (temp dirs, git repos)
+  state.test.mjs          State management tests
+  job-control.test.mjs    Job control tests
+  process.test.mjs        Process management tests
+  render.test.mjs         Output formatting tests
+  commands.test.mjs       Command definition validation tests
+  workspace.test.mjs      Workspace root detection tests
+package.json              Node.js project config (test runner)
+.mcp.json                 Registers Codex MCP server
 .claude-plugin/
-  plugin.json           Plugin metadata
-  marketplace.json      Marketplace manifest for /plugin marketplace add
+  plugin.json             Plugin metadata
+  marketplace.json        Marketplace manifest
 ```
 
 ## Conventions
@@ -101,6 +127,58 @@ Codex (OpenAI) has no native knowledge of Claude Code conventions. The plugin so
 3. **Cross-validation**: The `cross-validator` agent uses Claude's native Claude Code knowledge to verify Codex's audit findings. Dispatched after audit commands to catch false positives and hallucinated conventions.
 
 **Flow**: refresh-knowledge updates skill → codex-call injects skill into Codex → Codex audits → cross-validator verifies.
+
+### Job state management
+
+Every Codex call is tracked as a job. Jobs are stored per-workspace in `$CLAUDE_PLUGIN_DATA/state/<workspace-slug>-<hash>/`:
+- `state.json` — job list (up to 50, oldest pruned) + config (stopReviewGate)
+- `jobs/<id>.json` — per-job result payload
+- `jobs/<id>.log` — per-job progress log
+
+Job lifecycle: `queued` → `running` → `completed` | `failed` | `cancelled`
+
+Users manage jobs via `/status`, `/result`, `/cancel` commands.
+
+### Background execution
+
+Commands `audit`, `implement`, `bug-analyze`, and `review-plan` support `--background` / `--wait` flags:
+- `--wait` (default): run Codex inline, block until complete
+- `--background`: spawn `scripts/codex-runner.mjs` as a detached process, return job ID immediately
+
+The runner calls the `codex` CLI directly (not MCP) for background tasks.
+
+### Session lifecycle hooks
+
+Three hooks registered in `hooks/hooks.json`:
+- **SessionStart**: assigns `CODEX_TOOLKIT_SESSION_ID` env var, persists to `CLAUDE_ENV_FILE`
+- **SessionEnd**: kills orphaned Codex processes, removes session jobs from state
+- **Stop**: optional adversarial review gate (opt-in via `/setup --enable-review-gate`)
+
+### Stop-time review gate
+
+When enabled, the Stop hook runs a Codex adversarial review of Claude's last response. Output format:
+- `ALLOW: <reason>` → session ends normally
+- `BLOCK: <reason>` → session end is blocked, user must fix issues
+
+Enable/disable via `/setup --enable-review-gate` / `/setup --disable-review-gate`.
+
+### Structured output schema
+
+`schemas/audit-output.schema.json` defines the structured audit output format. Key additions vs flat reports:
+- `dimension` field on each finding (1-9)
+- `confidence` score (0-1)
+- `dimension_summary` array for per-dimension counts
+- `verdict` enum: `clean`, `needs-attention`, `needs-work`, `blocked`
+
+### Testing
+
+Run tests with `npm test` (uses Node.js native test runner). Test files in `tests/`:
+- `state.test.mjs` — state CRUD, pruning, config persistence
+- `job-control.test.mjs` — sorting, enrichment, snapshots, resolution
+- `process.test.mjs` — command execution, process termination
+- `render.test.mjs` — output formatting
+- `commands.test.mjs` — command file validation (frontmatter, references, hooks)
+- `workspace.test.mjs` — git root detection
 
 ### Adding new commands
 

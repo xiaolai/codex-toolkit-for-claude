@@ -1,6 +1,6 @@
 ---
 description: Code auditor — full 9-dimension or fast 5-dimension audit with --full/--mini flag
-argument-hint: "[scope] [--full | --mini]"
+argument-hint: "[scope] [--full | --mini] [--background | --wait]"
 ---
 
 ## User Input
@@ -18,6 +18,16 @@ Follow the instructions in `commands/shared/model-selection.md` to discover avai
 - **Include sandbox question**: No (audits always use `read-only`)
 
 ## Workflow
+
+### Step 0: Parse Execution Mode
+
+Parse `$ARGUMENTS` for `--background` or `--wait` flags (remove the flag from remaining arguments):
+
+| Flag | Mode |
+|------|------|
+| `--background` | Background — spawn detached Codex runner, return job ID |
+| `--wait` | Foreground (explicit) — same as default |
+| Neither | Foreground (default) — run inline, block until complete |
 
 ### Step 1: Determine Audit Type
 
@@ -68,7 +78,9 @@ For **full audits**, include test files — they are needed for Dimension 7 (Tes
 
 ### Step 3: Audit Execution
 
-Follow `commands/shared/codex-call.md` for availability test and call pattern.
+If `--background` mode was selected, follow the **Background Execution** section in `commands/shared/codex-call.md` instead of the inline execution below. Build the prompt as described in this step, then hand off to the background runner with `--kind audit`.
+
+Follow `commands/shared/codex-call.md` for availability test, call pattern, and **Job Tracking**.
 
 - **Command persona**: "You are a thorough security and code quality auditor." (full) / "You are a fast code quality reviewer focused on logic, duplication, and dead code." (mini)
 - **Sandbox**: `read-only`
