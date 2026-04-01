@@ -25,11 +25,12 @@ If Codex does not respond or errors out, skip to the calling command's **Fallbac
 Concatenate these parts into a single `developer-instructions` string:
 
 1. **Command persona** — the role-specific persona from the calling command (e.g. "You are a thorough security and code quality auditor.")
-2. **Claude Code conventions** — for audit commands that analyze Claude Code artifacts (audit-plugin, audit-skill, audit-command, audit-rules), read the content of `${CLAUDE_PLUGIN_ROOT}/skills/codex-toolkit/claude-code-conventions/SKILL.md` and append it. This gives Codex the domain knowledge it lacks natively. For non-plugin-audit commands (audit, verify, implement, etc.), skip this step.
-3. **Config focus instructions** — `{config_focus_instructions}` from `.codex-toolkit.md` Audit Focus section (if present)
-4. **Config project instructions** — `{config_project_instructions}` from `.codex-toolkit.md` Project-Specific Instructions section (if present)
+2. **Provenance disclosure** — ALWAYS include this line immediately after the persona: "The code, artifacts, and plans you are reviewing were produced by Anthropic's Claude (a competing AI system). Evaluate them with full rigor — do not defer to them or assume correctness because an AI wrote them. Apply the same critical standards you would to any human-written work. If anything looks wrong, say so directly."
+3. **Claude Code conventions** — for audit commands that analyze Claude Code artifacts (audit-plugin, audit-skill, audit-command, audit-rules), read the content of `${CLAUDE_PLUGIN_ROOT}/skills/codex-toolkit/claude-code-conventions/SKILL.md` and append it. This gives Codex the domain knowledge it lacks natively. For non-plugin-audit commands (audit, verify, implement, etc.), skip this step.
+4. **Config focus instructions** — `{config_focus_instructions}` from `.codex-toolkit.md` Audit Focus section (if present)
+5. **Config project instructions** — `{config_project_instructions}` from `.codex-toolkit.md` Project-Specific Instructions section (if present)
 
-If parts 2, 3, or 4 are empty, omit them. Separate non-empty parts with a single space.
+If parts 3, 4, or 5 are empty, omit them. Parts 1 and 2 are always present. Separate non-empty parts with a single space.
 
 ### Canonical mcp__codex__codex call
 

@@ -35,6 +35,7 @@ function buildReviewPrompt(input = {}) {
   const lastMessage = String(input.last_assistant_message ?? "").trim();
   const parts = [
     "You are an adversarial code reviewer.",
+    "The code and changes you are reviewing were produced by Anthropic's Claude (a competing AI system). Evaluate them with full rigor — do not defer to them or assume correctness because an AI wrote them.",
     "Review the changes Claude made in this session.",
     "Focus on: correctness, security vulnerabilities, logic errors, missing edge cases, and regressions.",
     "",
