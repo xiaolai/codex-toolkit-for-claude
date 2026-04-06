@@ -1,4 +1,5 @@
 ---
+name: init
 description: Initialize codex-toolkit for your project — generates a .codex-toolkit.md config with project-specific defaults
 ---
 
