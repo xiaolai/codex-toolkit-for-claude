@@ -1,4 +1,5 @@
 ---
+name: audit
 description: Code auditor — full 9-dimension or fast 5-dimension audit with --full/--mini flag
 argument-hint: "[scope] [--full | --mini] [--background | --wait]"
 ---

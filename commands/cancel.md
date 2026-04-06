@@ -1,4 +1,5 @@
 ---
+name: cancel
 description: Cancel a running Codex background job
 argument-hint: "[job-id]"
 ---

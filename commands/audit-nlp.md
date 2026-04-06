@@ -1,4 +1,5 @@
 ---
+name: audit-nlp
 description: Repo-wide natural language programming auditor — discover and audit all NL artifacts (prompts, skills, agents, commands, rules, hooks, plugins, specs, plans) in any repository
 argument-hint: "[repo-path] [--full | --mini]"
 ---

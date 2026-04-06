@@ -1,4 +1,5 @@
 ---
+name: cross-validator
 description: |
   Cross-validate Codex audit findings against Claude's native knowledge of Claude Code conventions. Use after any audit command to catch false positives and hallucinated conventions.
   <example>

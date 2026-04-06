@@ -1,4 +1,5 @@
 ---
+name: audit-skill
 description: Skill auditor — audit Claude Code SKILL.md files for structure, description quality, content effectiveness, and progressive disclosure
 argument-hint: "[skill-path-or-dir] [--full | --mini]"
 ---

@@ -1,4 +1,5 @@
 ---
+name: setup
 description: Check Codex readiness and manage the stop-time review gate
 argument-hint: "[--enable-review-gate | --disable-review-gate]"
 ---

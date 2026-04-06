@@ -1,4 +1,5 @@
 ---
+name: bug-analyze
 description: Root cause analysis for user-described bugs using Codex
 argument-hint: "<bug description> [--background | --wait]"
 ---
