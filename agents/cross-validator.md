@@ -12,7 +12,7 @@ description: |
   </example>
 model: sonnet
 color: yellow
-tools: Read, Glob, Grep
+tools: Read
 skills:
   - codex-toolkit:claude-code-conventions
 ---
