@@ -1,9 +1,9 @@
 {
   "name": "codex-toolkit",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "private": true,
   "type": "module",
-  "description": "OpenAI Codex MCP integration for Claude Code — audit, implement, verify, review, and debug via Codex",
+  "description": "OpenAI Codex MCP integration for Claude Code \u2014 audit, implement, verify, review, and debug via Codex",
   "license": "MIT",
   "engines": {
     "node": ">=18.18.0"
