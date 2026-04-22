@@ -21,7 +21,7 @@ node -e "
   const { buildStatusSnapshot } = await import('${CLAUDE_PLUGIN_ROOT}/scripts/lib/job-control.mjs');
   const snapshot = buildStatusSnapshot(process.cwd(), { all: process.argv[1] === '--all' });
   console.log(JSON.stringify(snapshot, null, 2));
-" -- "$(/bin/echo $ARGUMENTS | grep -o '\-\-all' || true)"
+" -- "$(/bin/echo "$ARGUMENTS" | grep -o '\-\-all' || true)"
 ```
 
 Parse the JSON output. The snapshot contains: `running` (active jobs), `latestFinished`, `recent` (completed jobs), `config` (review gate status), and `needsReview`.
