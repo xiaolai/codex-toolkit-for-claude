@@ -196,9 +196,9 @@ except Exception:
     # Also populate AVAILABLE array for backward compat and info output
     while IFS= read -r slug; do
       [[ -n "$slug" ]] && AVAILABLE+=("$slug")
-    done < <(python3 -c "
+    done < <(printf '%s' "$MODELS_DETAIL" | python3 -c "
 import json, sys
-for m in json.loads('''$MODELS_DETAIL'''):
+for m in json.loads(sys.stdin.read()):
     print(m['slug'])
 " 2>/dev/null)
   elif command -v jq &>/dev/null; then
