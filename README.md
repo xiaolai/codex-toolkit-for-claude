@@ -128,4 +128,4 @@ The plugin registers Codex as an MCP server via `.mcp.json`. Authenticate via su
 
 ## License
 
-MIT
+ISC
