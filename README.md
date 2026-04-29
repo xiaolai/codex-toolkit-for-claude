@@ -13,6 +13,8 @@ npm install -g @openai/codex && codex login    # prerequisite
 /codex-toolkit:setup                           # verify readiness
 ```
 
+> **Install fails with "Plugin not found in marketplace 'xiaolai'"?** Your local marketplace clone is stale. Run `claude plugin marketplace update xiaolai` and retry — `plugin install` does not auto-refresh.
+
 ## How It Works
 
 ```mermaid
