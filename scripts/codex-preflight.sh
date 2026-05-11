@@ -4,7 +4,7 @@
 # Usage:  bash scripts/codex-preflight.sh
 # Output: JSON to stdout  (human summary to stderr)
 #
-# Caching: Results are cached for 5 minutes in $TMPDIR/codex-preflight-cache.json.
+# Caching: Results are cached for 5 minutes in $XDG_CACHE_HOME/codex-toolkit/preflight-cache.json.
 #          Set CODEX_PREFLIGHT_NO_CACHE=1 to skip cache.
 #
 # How it works:
@@ -75,7 +75,9 @@ file_age_seconds() {
 
 # ── Step 0: Check our own preflight cache ────────────────────────────────────
 
-CACHE_FILE="${TMPDIR:-/tmp}/codex-preflight-cache.json"
+CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/codex-toolkit"
+mkdir -p "$CACHE_DIR"
+CACHE_FILE="$CACHE_DIR/preflight-cache.json"
 
 if [[ -z "${CODEX_PREFLIGHT_NO_CACHE:-}" && -f "$CACHE_FILE" ]]; then
   cache_age=$(file_age_seconds "$CACHE_FILE")
