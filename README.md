@@ -1,5 +1,7 @@
 # codex-toolkit
 
+[![Validated by NLPM](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/xiaolai/codex-toolkit-for-claude/main/nlpm-badge.json)](https://github.com/xiaolai/codex-toolkit-for-claude/blob/main/nlpm-badge.json)
+
 OpenAI Codex MCP integration for Claude Code — audit, implement, verify, review, and debug via Codex.
 
 Part of the [xiaolai plugin marketplace](https://github.com/xiaolai/claude-plugin-marketplace). For the full reference, see **[GUIDE.md](GUIDE.md)**.
